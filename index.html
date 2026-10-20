@@ -242,6 +242,26 @@
   .menu svg { width: 20px; height: 20px; color: var(--muted); }
   .menu .danger svg { color: var(--danger); }
   .foot { text-align: center; font-size: 12px; color: var(--faint); margin-top: 8px; line-height: 1.5; }
+  .menu .right { margin-left: auto; font-size: 14px; color: var(--muted); font-weight: 550; display: inline-flex; align-items: center; gap: 6px; }
+
+  /* ---------- Sync ---------- */
+  .avatar { position: relative; }
+  .avatar .badge {
+    position: absolute; right: -1px; bottom: -1px; width: 13px; height: 13px; border-radius: 50%;
+    border: 2.5px solid var(--bg); display: none;
+  }
+  .sdot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); display: inline-block; flex-shrink: 0; }
+  .s-live { background: var(--good); }
+  .s-wait { background: var(--nap); }
+  .s-error { background: var(--danger); }
+  .avatar .badge.s-live, .avatar .badge.s-wait, .avatar .badge.s-error { display: block; }
+  .sync-status { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--muted); margin: -6px 0 16px; }
+  .code-card { background: var(--card-2); border-radius: 18px; padding: 16px; text-align: center; margin-bottom: 10px; }
+  .code-card span { display: block; font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
+  .code-card b { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 19px; letter-spacing: .04em; font-weight: 700; word-break: break-all; user-select: all; -webkit-user-select: all; }
+  .field input.code { font-family: ui-monospace, "SF Mono", Menlo, monospace; text-transform: uppercase; letter-spacing: .04em; }
+  .steps { margin: 0 0 16px; padding-left: 20px; color: var(--muted); font-size: 14px; line-height: 1.55; }
+  .steps b { color: var(--text); }
 
   /* ---------- Toast ---------- */
   .toast {
@@ -266,7 +286,7 @@
       <div class="hello" id="hello">Hello</div>
       <div class="name" id="babyName">Sye</div>
     </div>
-    <button class="avatar" id="avatar" aria-label="Settings">S</button>
+    <button class="avatar" id="avatar" aria-label="Settings"><span id="avatarLetter">S</span><i class="badge" id="syncBadge"></i></button>
   </header>
 
   <section class="hero" id="hero">
@@ -335,8 +355,15 @@
 <div class="sheet" id="setSheet" role="dialog" aria-modal="true">
   <div class="grab"></div>
   <h3>Settings</h3>
-  <p class="hint">Everything stays on this phone. Nothing is uploaded anywhere.</p>
+  <p class="hint" id="setHint">Everything stays on this phone. Nothing is uploaded anywhere.</p>
   <label class="field"><span>Baby's name</span><input type="text" id="inName" maxlength="24" autocomplete="off"></label>
+  <div class="menu">
+    <button id="syncRow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 0 0-14.3-4.9M4 4v4h4M4 12a8 8 0 0 0 14.3 4.9M20 20v-4h-4"/></svg>
+      Sync with partner
+      <span class="right" id="syncRowState">Off</span>
+    </button>
+  </div>
   <div class="menu">
     <button id="exportBtn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
@@ -356,8 +383,15 @@
   <div class="foot" id="foot"></div>
 </div>
 
+<!-- Sync sheet (contents filled in by renderSyncSheet) -->
+<div class="sheet" id="syncSheet" role="dialog" aria-modal="true">
+  <div class="grab"></div>
+  <div id="syncBody"></div>
+</div>
+
 <div class="toast" id="toast"><span id="toastText"></span><button id="toastBtn" hidden>Undo</button></div>
 
+<script src="sync-config.js"></script>
 <script>
 (() => {
   'use strict';
@@ -369,18 +403,60 @@
 
   let state = load();
 
+  // state.tomb remembers deleted ids so deletions reach the other phone.
+  // state.dirty holds changes not yet sent to the sync server.
   function load() {
+    const blank = { name: 'Sye', nameAt: 0, sleeps: [], active: null, activeAt: 0, tomb: {}, dirty: {}, family: null };
     try {
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const s = JSON.parse(raw);
-        return { name: s.name || 'Sye', sleeps: Array.isArray(s.sleeps) ? s.sleeps : [], active: s.active || null };
+        const sleeps = (Array.isArray(s.sleeps) ? s.sleeps : []).map(x => ({ ...x, updatedAt: x.updatedAt || x.end }));
+        return { ...blank, ...s, name: s.name || 'Sye', sleeps, tomb: s.tomb || {}, dirty: s.dirty || {} };
       }
     } catch (e) {}
-    return { name: 'Sye', sleeps: [], active: null };
+    return blank;
+  }
+  function saveLocal() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
   }
   function save() {
-    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    saveLocal();
+    Sync.push();
+  }
+
+  // ---------- Changes (all edits go through these so sync sees them) ----------
+  function touchSleep(s) {
+    s.updatedAt = Date.now();
+    delete state.tomb[s.id];
+    state.dirty['s:' + s.id] = 1;
+  }
+  function addSleep(s) {
+    state.sleeps.push(s);
+    touchSleep(s);
+    return s;
+  }
+  function removeSleep(id) {
+    const i = state.sleeps.findIndex(x => x.id === id);
+    if (i < 0) return null;
+    const [gone] = state.sleeps.splice(i, 1);
+    state.tomb[id] = Date.now();
+    state.dirty['s:' + id] = 1;
+    return gone;
+  }
+  function restoreSleep(s) {
+    if (state.sleeps.some(x => x.id === s.id)) return;
+    addSleep(s);
+  }
+  function setActive(v) {
+    state.active = v;
+    state.activeAt = Date.now();
+    state.dirty.active = 1;
+  }
+  function setName(n) {
+    state.name = n;
+    state.nameAt = Date.now();
+    state.dirty.name = 1;
   }
   // Ask the browser to never evict our data.
   try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
@@ -507,19 +583,19 @@
     if (state.active) {
       const start = state.active;
       if (now - start < MIN) {
-        state.active = null; save(); renderAll();
+        setActive(null); save(); renderAll();
         toast('Too short to save');
         buzz(20);
         return;
       }
-      const s = { id: uid(), start, end: now };
-      state.sleeps.push(s); state.active = null; save();
+      const s = addSleep({ id: uid(), start, end: now });
+      setActive(null); save();
       buzz([12, 60, 12]);
-      toast(`Slept ${fmtDur(now - start)}`, () => { state.sleeps = state.sleeps.filter(x => x.id !== s.id); state.active = start; save(); renderAll(); });
+      toast(`Slept ${fmtDur(now - start)}`, () => { removeSleep(s.id); setActive(start); save(); renderAll(); });
     } else {
-      state.active = now; save();
+      setActive(now); save();
       buzz(15);
-      toast('Sweet dreams 🌙', () => { state.active = null; save(); renderAll(); });
+      toast('Sweet dreams 🌙', () => { setActive(null); save(); renderAll(); });
     }
     renderAll();
   });
@@ -693,7 +769,7 @@
     const h = new Date(now).getHours();
     $('hello').textContent = h < 5 ? 'Late night with' : h < 12 ? 'Good morning,' : h < 18 ? 'Good afternoon,' : 'Good evening,';
     $('babyName').textContent = state.name;
-    $('avatar').textContent = (state.name.trim()[0] || 'S').toUpperCase();
+    $('avatarLetter').textContent = (state.name.trim()[0] || 'S').toUpperCase();
     document.title = `${state.name} · Sleep`;
   }
 
@@ -705,6 +781,7 @@
     renderTiles(now, totals);
     renderChart(now, totals);
     renderHistory(now, totals);
+    renderSyncUi();
   }
 
   // ---------- Sheets ----------
@@ -801,12 +878,12 @@
   $('saveBtn').addEventListener('click', () => {
     const { s, e } = readEdit();
     if (editing === 'active') {
-      state.active = s;
+      if (state.active) setActive(s);
     } else if (editing) {
       const x = state.sleeps.find(x => x.id === editing);
-      if (x) { x.start = s; x.end = Math.min(e, Date.now()); }
+      if (x) { x.start = s; x.end = Math.min(e, Date.now()); touchSleep(x); }
     } else {
-      state.sleeps.push({ id: uid(), start: s, end: Math.min(e, Date.now()) });
+      addSleep({ id: uid(), start: s, end: Math.min(e, Date.now()) });
     }
     save(); hide(); buzz(10); renderAll();
     toast('Saved');
@@ -815,15 +892,14 @@
   $('delBtn').addEventListener('click', () => {
     if (editing === 'active') {
       const prev = state.active;
-      state.active = null; save(); hide(); renderAll();
-      toast('Sleep cancelled', () => { state.active = prev; save(); renderAll(); });
+      setActive(null); save(); hide(); renderAll();
+      toast('Sleep cancelled', () => { setActive(prev); save(); renderAll(); });
       return;
     }
-    const idx = state.sleeps.findIndex(x => x.id === editing);
-    if (idx < 0) return hide();
-    const [removed] = state.sleeps.splice(idx, 1);
+    const removed = removeSleep(editing);
+    if (!removed) return hide();
     save(); hide(); buzz(20); renderAll();
-    toast('Deleted', () => { state.sleeps.push(removed); save(); renderAll(); });
+    toast('Deleted', () => { restoreSleep(removed); save(); renderAll(); });
   });
 
   $('addBtn').addEventListener('click', () => openEdit(null));
@@ -832,10 +908,14 @@
   $('avatar').addEventListener('click', () => {
     $('inName').value = state.name;
     $('foot').textContent = `${state.sleeps.length} sleeps logged`;
+    $('setHint').textContent = state.family
+      ? 'Sync is on: this log is shared with your partner’s phone.'
+      : 'Everything stays on this phone. Nothing is uploaded anywhere.';
+    renderSyncUi();
     show($('setSheet'));
   });
   $('inName').addEventListener('input', () => {
-    state.name = $('inName').value.trim() || 'Sye';
+    setName($('inName').value.trim() || 'Sye');
     save(); renderHeader(Date.now());
   });
   $('setDone').addEventListener('click', hide);
@@ -870,8 +950,11 @@
       // merge, skipping exact duplicates
       const seen = new Set(state.sleeps.map(s => s.start + ':' + s.end));
       let added = 0;
-      for (const s of clean) if (!seen.has(s.start + ':' + s.end)) { state.sleeps.push(s); added++; }
-      if (d.name && state.name === 'Sye') state.name = String(d.name).slice(0, 24);
+      for (const s of clean) {
+        if (seen.has(s.start + ':' + s.end) || state.sleeps.some(x => x.id === s.id)) continue;
+        addSleep(s); added++;
+      }
+      if (d.name && state.name === 'Sye') setName(String(d.name).slice(0, 24));
       save(); hide(); renderAll();
       toast(`Restored ${added} sleep${added === 1 ? '' : 's'}`);
     } catch (e) {
@@ -880,8 +963,12 @@
   });
 
   $('wipeBtn').addEventListener('click', () => {
-    if (!confirm('Delete all sleep data on this phone? This can’t be undone (unless you have a backup).')) return;
-    state = { name: state.name, sleeps: [], active: null };
+    const msg = state.family
+      ? 'Delete all sleep data? Sync is on, so this also deletes it on your partner’s phone. This can’t be undone (unless you have a backup).'
+      : 'Delete all sleep data on this phone? This can’t be undone (unless you have a backup).';
+    if (!confirm(msg)) return;
+    for (const s of state.sleeps.slice()) removeSleep(s.id);
+    if (state.active) setActive(null);
     save(); hide(); renderAll();
     toast('All data deleted');
   });
@@ -900,8 +987,270 @@
 
   function escapeHtml(s) { return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
+  // ---------- Sync ----------
+  // Each phone keeps its own copy and sends changes to a shared Firebase
+  // database. For every entry the most recent change wins.
+  const Sync = (() => {
+    const cfg = window.SYNC_CONFIG;
+    let backend = null, unsub = null, status = 'off', pushing = false, again = false;
+    const configured = () => !!window.__TEST_BACKEND__ || !!(cfg && cfg.projectId);
+
+    async function getBackend() {
+      if (backend) return backend;
+      if (window.__TEST_BACKEND__) return (backend = window.__TEST_BACKEND__);
+      const base = 'https://www.gstatic.com/firebasejs/10.12.2/';
+      const [A, F] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-firestore.js')]);
+      const db = F.getFirestore(A.initializeApp(cfg));
+      backend = {
+        listen(fid, onDocs, onState) {
+          const subs = ['sleeps', 'meta'].map(coll => F.onSnapshot(
+            F.collection(db, 'families', fid, coll),
+            { includeMetadataChanges: true },
+            snap => {
+              onDocs(coll, snap.docChanges().map(c => ({ id: c.doc.id, data: c.doc.data() })));
+              onState(snap.metadata.fromCache ? 'wait' : 'live');
+            },
+            err => onState('error', err)
+          ));
+          return () => subs.forEach(u => u());
+        },
+        put(fid, coll, id, data) { return F.setDoc(F.doc(db, 'families', fid, coll, id), data); }
+      };
+      return backend;
+    }
+
+    function setStatus(s) { status = s; renderSyncUi(); }
+
+    async function start() {
+      if (!state.family || !configured() || unsub) return;
+      setStatus('wait');
+      let b;
+      try { b = await getBackend(); } catch (e) { console.warn('sync: could not load', e); return; } // offline; retried on 'online'
+      if (unsub || !state.family) return;
+      const fid = state.family;
+      unsub = b.listen(fid,
+        (coll, docs) => { if (fid === state.family) applyRemote(coll, docs); },
+        (s, err) => { if (err) console.warn('sync', err); setStatus(s); if (s === 'live') push(); });
+      push();
+    }
+    function stop() {
+      if (unsub) unsub();
+      unsub = null;
+      setStatus('off');
+    }
+
+    // What to send for one pending change.
+    function docFor(key) {
+      if (key === 'active') return { coll: 'meta', id: 'active', data: { value: state.active || null, updatedAt: state.activeAt || 0 } };
+      if (key === 'name') return { coll: 'meta', id: 'name', data: { value: state.name, updatedAt: state.nameAt || 0 } };
+      const id = key.slice(2), s = state.sleeps.find(x => x.id === id);
+      if (s) return { coll: 'sleeps', id, data: { start: s.start, end: s.end, updatedAt: s.updatedAt, deleted: false } };
+      if (state.tomb[id]) return { coll: 'sleeps', id, data: { deleted: true, updatedAt: state.tomb[id] } };
+      return null;
+    }
+
+    async function push() {
+      if (!state.family || !backend || !unsub) return;
+      if (pushing) { again = true; return; }
+      pushing = true;
+      try {
+        do {
+          again = false;
+          const fid = state.family;
+          const jobs = Object.keys(state.dirty).map(key => {
+            const d = docFor(key);
+            if (!d) { delete state.dirty[key]; return null; }
+            return backend.put(fid, d.coll, d.id, d.data).then(() => {
+              // Only clear it if nothing changed while it was being sent.
+              const now = docFor(key);
+              if (fid === state.family && now && now.data.updatedAt === d.data.updatedAt) delete state.dirty[key];
+            });
+          }).filter(Boolean);
+          if (!jobs.length) break;
+          await Promise.all(jobs);
+          saveLocal();
+        } while (again);
+      } catch (e) {
+        console.warn('sync: send failed', e);
+        setStatus('error');
+      } finally {
+        pushing = false;
+      }
+    }
+
+    function applyRemote(coll, docs) {
+      let changed = false;
+      for (const { id, data } of docs) {
+        if (!data || typeof data.updatedAt !== 'number') continue;
+        if (coll === 'sleeps') {
+          const i = state.sleeps.findIndex(x => x.id === id);
+          const localAt = i >= 0 ? state.sleeps[i].updatedAt : (state.tomb[id] || 0);
+          if (!(data.updatedAt > localAt)) continue;
+          if (data.deleted) {
+            if (i >= 0) state.sleeps.splice(i, 1);
+            state.tomb[id] = data.updatedAt;
+          } else {
+            if (typeof data.start !== 'number' || typeof data.end !== 'number') continue;
+            const s = { id, start: data.start, end: data.end, updatedAt: data.updatedAt };
+            if (i >= 0) state.sleeps[i] = s; else state.sleeps.push(s);
+            delete state.tomb[id];
+          }
+          delete state.dirty['s:' + id];
+          changed = true;
+        } else if (id === 'active' && data.updatedAt > (state.activeAt || 0)) {
+          state.active = typeof data.value === 'number' ? data.value : null;
+          state.activeAt = data.updatedAt;
+          delete state.dirty.active;
+          changed = true;
+        } else if (id === 'name' && typeof data.value === 'string' && data.updatedAt > (state.nameAt || 0)) {
+          state.name = data.value.slice(0, 24) || 'Sye';
+          state.nameAt = data.updatedAt;
+          delete state.dirty.name;
+          changed = true;
+        }
+      }
+      if (changed) { saveLocal(); renderAll(); }
+    }
+
+    // Queue everything on this phone so it gets shared when sync starts.
+    function shareAll() {
+      for (const s of state.sleeps) state.dirty['s:' + s.id] = 1;
+      for (const id in state.tomb) state.dirty['s:' + id] = 1;
+      if (state.activeAt) state.dirty.active = 1;
+      if (state.nameAt) state.dirty.name = 1;
+    }
+    function begin(code) {
+      stop();
+      state.family = code;
+      shareAll();
+      saveLocal();
+      start();
+    }
+    function leave() {
+      stop();
+      state.family = null;
+      state.dirty = {};
+      saveLocal();
+    }
+
+    window.addEventListener('online', () => { unsub ? push() : start(); });
+    window.addEventListener('offline', () => { if (unsub) setStatus('wait'); });
+
+    return { configured, start, stop, push, begin, leave, status: () => status };
+  })();
+
+  // Family codes: 20 characters (about 100 bits), shown as XXXXX-XXXXX-XXXXX-XXXXX.
+  const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  function newCode() {
+    const r = crypto.getRandomValues(new Uint8Array(20));
+    return Array.from(r, b => CODE_CHARS[b % CODE_CHARS.length]).join('');
+  }
+  const fmtCode = (c) => c.match(/.{1,5}/g).join('-');
+  function parseCode(text) {
+    const up = String(text || '').toUpperCase();
+    const m = up.match(/[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}/);
+    const raw = (m ? m[0] : up).replace(/[^A-Z0-9]/g, '');
+    return raw.length === 20 && [...raw].every(ch => CODE_CHARS.includes(ch)) ? raw : null;
+  }
+
+  const SYNC_TEXT = { off: 'Off', wait: 'Connecting…', live: 'On', error: 'Problem' };
+  const SYNC_CLASS = { off: '', wait: 's-wait', live: 's-live', error: 's-error' };
+  function syncStatusLine() {
+    const s = Sync.status();
+    if (s === 'live') return 'Synced · up to date';
+    if (s === 'error') return 'Can’t sync right now. Check the setup steps, then reopen the app.';
+    return navigator.onLine === false ? 'Offline · changes will sync when you’re back online' : 'Connecting…';
+  }
+  function renderSyncUi() {
+    const s = Sync.status();
+    $('syncBadge').className = 'badge ' + SYNC_CLASS[s];
+    $('syncRowState').innerHTML = state.family ? `<i class="sdot ${SYNC_CLASS[s]}"></i>${SYNC_TEXT[s]}` : (Sync.configured() ? 'Off' : 'Set up');
+    const line = $('syncLine');
+    if (line) line.innerHTML = `<i class="sdot ${SYNC_CLASS[s]}"></i>${syncStatusLine()}`;
+  }
+
+  const SETUP_URL = 'https://github.com/SlavVitanov/Sleep-tracker#sync-between-two-phones';
+  function renderSyncSheet(view) {
+    const body = $('syncBody');
+    if (!Sync.configured()) {
+      body.innerHTML = `<h3>Sync with partner</h3>
+        <p class="hint">See the same log on both phones. This needs a one-time setup of about 10 minutes, done by whoever looks after the app.</p>
+        <a class="btn" style="display:grid;place-items:center;text-decoration:none" href="${SETUP_URL}" target="_blank" rel="noopener">Open the setup guide</a>
+        <button class="btn soft" data-act="close">Not now</button>`;
+    } else if (state.family) {
+      body.innerHTML = `<h3>Sync is on</h3>
+        <div class="sync-status" id="syncLine"></div>
+        <div class="code-card"><span>Family code</span><b>${fmtCode(state.family)}</b></div>
+        <p class="hint">On your partner’s phone, open the app, tap the round initial → <b>Sync with partner</b> → <b>I have a code</b>, and paste this code. Keep it private: anyone with it can see and change the log.</p>
+        <button class="btn" data-act="share">Send code to partner</button>
+        <button class="btn soft" data-act="close">Done</button>
+        <button class="btn ghost" data-act="leave">Stop syncing on this phone</button>`;
+    } else if (view === 'join') {
+      body.innerHTML = `<h3>Join your partner</h3>
+        <p class="hint">On the phone that already syncs, tap the round initial → <b>Sync with partner</b> → <b>Send code to partner</b>. Then paste the code here.</p>
+        <label class="field"><span>Family code</span><input class="code" id="inCode" placeholder="XXXXX-XXXXX-XXXXX-XXXXX" autocomplete="off" autocapitalize="characters" spellcheck="false"></label>
+        <div class="preview" id="codeHint"></div>
+        <button class="btn" data-act="join" id="joinBtn" disabled>Join</button>
+        <button class="btn soft" data-act="back">Back</button>`;
+      const inp = $('inCode');
+      inp.addEventListener('input', () => {
+        const ok = !!parseCode(inp.value);
+        $('joinBtn').disabled = !ok;
+        $('codeHint').innerHTML = inp.value.trim() && !ok ? 'That doesn’t look like a family code yet' : '';
+      });
+    } else {
+      body.innerHTML = `<h3>Sync with partner</h3>
+        <p class="hint">Log on either phone and see it on both, live. Sleeps already on this phone are kept and shared.</p>
+        <button class="btn" data-act="create">Start syncing</button>
+        <button class="btn soft" data-act="toJoin">I have a code from my partner</button>`;
+    }
+    body.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => syncAction(b.dataset.act)));
+    renderSyncUi();
+  }
+
+  async function syncAction(act) {
+    buzz(8);
+    if (act === 'close') return hide();
+    if (act === 'toJoin') return renderSyncSheet('join');
+    if (act === 'back') return renderSyncSheet();
+    if (act === 'create') {
+      Sync.begin(newCode());
+      renderSyncSheet();
+      return toast('Sync is on');
+    }
+    if (act === 'join') {
+      const code = parseCode($('inCode').value);
+      if (!code) return;
+      Sync.begin(code);
+      renderSyncSheet();
+      return toast('Joined · syncing now');
+    }
+    if (act === 'leave') {
+      if (!confirm('Stop syncing on this phone? The log stays on this phone, but new changes won’t be shared.')) return;
+      Sync.leave();
+      renderSyncSheet();
+      return toast('Sync turned off');
+    }
+    if (act === 'share') {
+      const link = location.origin + location.pathname;
+      const text = `Join ${state.name}'s sleep tracker:\n1. Open ${link} and add it to your home screen\n2. Open it, tap the round initial → Sync with partner → I have a code\n3. Paste this code: ${fmtCode(state.family)}`;
+      try {
+        if (navigator.share) { await navigator.share({ text }); return; }
+      } catch (e) { if (e && e.name === 'AbortError') return; }
+      try { await navigator.clipboard.writeText(text); toast('Code copied'); }
+      catch (e) { toast('Copy the code above'); }
+    }
+  }
+
+  $('syncRow').addEventListener('click', () => {
+    if (openSheet) openSheet.classList.remove('open');
+    renderSyncSheet();
+    show($('syncSheet'));
+  });
+
   // ---------- Tick ----------
   renderAll();
+  Sync.start();
   requestAnimationFrame(placeThumb);
   window.addEventListener('resize', placeThumb);
   let lastMinute = Math.floor(Date.now() / MIN);
@@ -911,7 +1260,7 @@
     const m = Math.floor(now / MIN);
     if (m !== lastMinute) { lastMinute = m; renderAll(); }
   }, 1000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) { state = load(); renderAll(); } });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { state = load(); renderAll(); state.family ? Sync.start() : Sync.stop(); } });
 
   // ---------- Offline ----------
   if ('serviceWorker' in navigator && location.protocol === 'https:') {
