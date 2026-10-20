@@ -1,0 +1,923 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Sleep</title>
+<meta name="description" content="A tiny sleep tracker for your little one.">
+<meta name="theme-color" content="#0b0b10" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f4f4f7" media="(prefers-color-scheme: light)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sleep">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<style>
+  :root {
+    --bg: #f4f4f7;
+    --card: #ffffff;
+    --card-2: #eeeef3;
+    --text: #0b0b10;
+    --muted: #6e6e7a;
+    --faint: #a9a9b4;
+    --line: rgba(10, 10, 20, 0.07);
+    --night: #6c5ce7;
+    --night-2: #8f7dff;
+    --nap: #ffb547;
+    --nap-2: #ffcf80;
+    --good: #18b67a;
+    --danger: #ff4d5e;
+    --btn: #0b0b10;
+    --btn-text: #ffffff;
+    --shadow: 0 1px 2px rgba(10, 10, 30, 0.04), 0 8px 24px rgba(10, 10, 30, 0.06);
+    --sheet-bg: #ffffff;
+    --scrim: rgba(10, 10, 20, 0.35);
+    --radius: 24px;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0b0b10;
+      --card: #16161d;
+      --card-2: #1f1f28;
+      --text: #f5f5f8;
+      --muted: #8c8c99;
+      --faint: #55555f;
+      --line: rgba(255, 255, 255, 0.06);
+      --night: #7b6cff;
+      --night-2: #a497ff;
+      --nap: #ffb547;
+      --nap-2: #ffd08a;
+      --btn: #ffffff;
+      --btn-text: #0b0b10;
+      --shadow: none;
+      --sheet-bg: #17171f;
+      --scrim: rgba(0, 0, 0, 0.6);
+      color-scheme: dark;
+    }
+  }
+
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    min-height: 100dvh;
+    overscroll-behavior-y: none;
+    font-feature-settings: "tnum" 1, "ss01" 1;
+  }
+  button { font: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer; }
+  input { font: inherit; color: inherit; }
+
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 40px);
+  }
+
+  /* ---------- Header ---------- */
+  .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+  .hello { font-size: 14px; color: var(--muted); font-weight: 500; letter-spacing: 0.01em; }
+  .name { font-size: 30px; font-weight: 700; letter-spacing: -0.03em; margin-top: 2px; }
+  .avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    display: grid; place-items: center;
+    font-weight: 700; font-size: 16px; color: #fff;
+    background: linear-gradient(135deg, var(--night-2), var(--night) 55%, #4b3bd1);
+    box-shadow: 0 6px 18px rgba(108, 92, 231, 0.35);
+    transition: transform .2s ease;
+  }
+  .avatar:active { transform: scale(0.92); }
+
+  /* ---------- Hero ---------- */
+  .hero {
+    position: relative; overflow: hidden;
+    border-radius: 28px; padding: 22px 20px 20px;
+    background: var(--card); box-shadow: var(--shadow);
+    isolation: isolate;
+  }
+  .hero::before {
+    content: ""; position: absolute; inset: -40% -20% auto auto;
+    width: 280px; height: 280px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 181, 71, 0.22), transparent 65%);
+    z-index: -1; transition: background .6s ease, transform .8s ease;
+  }
+  .hero.sleeping::before {
+    background: radial-gradient(circle, rgba(123, 108, 255, 0.40), transparent 65%);
+    transform: scale(1.25);
+  }
+  .status { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--muted); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--nap); position: relative; }
+  .sleeping .dot { background: var(--night-2); }
+  .sleeping .dot::after {
+    content: ""; position: absolute; inset: -4px; border-radius: 50%;
+    border: 2px solid var(--night-2); opacity: 0; animation: ping 2s ease-out infinite;
+  }
+  @keyframes ping { 0% { transform: scale(.5); opacity: .8; } 100% { transform: scale(1.8); opacity: 0; } }
+  .timer {
+    font-size: 54px; font-weight: 700; letter-spacing: -0.045em; line-height: 1;
+    margin: 14px 0 6px; font-variant-numeric: tabular-nums;
+  }
+  .timer small { font-size: 26px; letter-spacing: -0.02em; color: var(--muted); font-weight: 600; }
+  .timer .sec { color: var(--faint); }
+  .sub { font-size: 14px; color: var(--muted); min-height: 20px; }
+  .sub button { color: var(--night); font-weight: 600; }
+  @media (prefers-color-scheme: dark) { .sub button { color: var(--night-2); } }
+
+  .main-btn {
+    margin-top: 20px; width: 100%; height: 56px; border-radius: 18px;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    background: var(--btn); color: var(--btn-text);
+    font-size: 17px; font-weight: 650; letter-spacing: -0.01em;
+    transition: transform .15s ease, background .3s ease;
+  }
+  .main-btn:active { transform: scale(0.97); }
+  .main-btn svg { width: 20px; height: 20px; }
+  .sleeping .main-btn { background: linear-gradient(135deg, var(--night-2), var(--night) 60%, #4b3bd1); color: #fff; }
+
+  /* ---------- Stat tiles ---------- */
+  .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+  .tile { background: var(--card); border-radius: 20px; padding: 14px 14px 13px; box-shadow: var(--shadow); }
+  .tile .label { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .tile .val { font-size: 20px; font-weight: 700; letter-spacing: -0.03em; margin-top: 6px; white-space: nowrap; }
+  .tile .val span { font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: 0; margin-left: 1px; }
+
+  /* ---------- Section ---------- */
+  .card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-top: 12px; box-shadow: var(--shadow); }
+  .card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
+  .card-head > div:first-child { min-width: 0; }
+  .eyebrow { font-size: 13px; color: var(--muted); font-weight: 500; }
+  .big { font-size: 32px; font-weight: 700; letter-spacing: -0.04em; margin-top: 4px; line-height: 1.1; }
+  .big span { font-size: 18px; color: var(--muted); font-weight: 600; letter-spacing: -0.01em; }
+  .delta { font-size: 13px; font-weight: 600; margin-top: 4px; color: var(--muted); min-height: 18px; }
+  .delta.up { color: var(--good); }
+
+  .seg { display: inline-flex; background: var(--card-2); border-radius: 12px; padding: 3px; position: relative; flex-shrink: 0; }
+  .seg button { position: relative; z-index: 1; font-size: 13px; font-weight: 600; padding: 7px 11px; border-radius: 9px; color: var(--muted); transition: color .2s; }
+  .seg button.on { color: var(--text); }
+  .seg .thumb { position: absolute; top: 3px; bottom: 3px; border-radius: 9px; background: var(--card); box-shadow: 0 1px 3px rgba(0,0,0,.12); transition: left .3s cubic-bezier(.3,.7,.2,1), width .3s cubic-bezier(.3,.7,.2,1); }
+  @media (prefers-color-scheme: dark) { .seg .thumb { background: #34343f; } }
+
+  /* ---------- Chart ---------- */
+  .chart { position: relative; height: 190px; margin-top: 22px; padding-right: 30px; }
+  .grid { position: absolute; inset: 0 0 22px 0; pointer-events: none; }
+  .gl { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--line); }
+  .gl b { position: absolute; right: 0; top: -8px; font-size: 10px; font-weight: 600; color: var(--faint); }
+  .avg-line { position: absolute; left: 0; right: 30px; border-top: 1.5px dashed var(--muted); opacity: .45; transition: bottom .5s cubic-bezier(.3,.7,.2,1); }
+  .bars { position: absolute; inset: 0 30px 0 0; display: flex; align-items: flex-end; gap: var(--gap, 8px); }
+  .col { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; min-width: 0; }
+  .stack { width: 100%; max-width: 30px; height: calc(100% - 22px); display: flex; flex-direction: column; justify-content: flex-end; transition: opacity .25s; }
+  .seg-nap, .seg-night {
+    width: 100%; transform-origin: bottom; transition: height .55s cubic-bezier(.3,.7,.2,1);
+  }
+  .seg-nap { background: var(--nap); border-radius: 6px 6px 2px 2px; margin-bottom: 2px; }
+  .seg-night { background: var(--night); border-radius: 6px 6px 3px 3px; }
+  .seg-nap.empty { margin-bottom: 0; }
+  .col.today .seg-night { background: repeating-linear-gradient(-45deg, var(--night), var(--night) 4px, var(--night-2) 4px, var(--night-2) 8px); }
+  .col.today .seg-nap { background: repeating-linear-gradient(-45deg, var(--nap), var(--nap) 4px, var(--nap-2) 4px, var(--nap-2) 8px); }
+  .bars.has-sel .col:not(.sel) .stack { opacity: .3; }
+  .xl { height: 22px; line-height: 22px; font-size: 11px; font-weight: 600; color: var(--faint); white-space: nowrap; }
+  .col.sel .xl { color: var(--text); }
+  .legend { display: flex; gap: 16px; margin-top: 14px; font-size: 12px; color: var(--muted); font-weight: 500; flex-wrap: wrap; }
+  .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 3px; margin-right: 6px; vertical-align: 0; }
+
+  /* ---------- History ---------- */
+  .list-head { display: flex; align-items: center; justify-content: space-between; margin: 26px 4px 8px; }
+  .list-head h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.03em; margin: 0; }
+  .pill-btn { font-size: 14px; font-weight: 600; padding: 8px 14px; border-radius: 999px; background: var(--card); box-shadow: var(--shadow); display: inline-flex; align-items: center; gap: 6px; }
+  .pill-btn:active { transform: scale(.96); }
+  .day { margin-top: 12px; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .day-h { display: flex; justify-content: space-between; padding: 14px 18px 4px; font-size: 13px; color: var(--muted); font-weight: 600; }
+  .row { display: flex; align-items: center; gap: 14px; padding: 12px 18px; width: 100%; text-align: left; transition: background .15s; }
+  .row:active { background: var(--card-2); }
+  .ico { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; }
+  .ico svg { width: 19px; height: 19px; }
+  .ico.night { background: rgba(108, 92, 231, 0.14); color: var(--night); }
+  .ico.nap { background: rgba(255, 181, 71, 0.18); color: #e8930c; }
+  @media (prefers-color-scheme: dark) { .ico.night { color: var(--night-2); } .ico.nap { color: var(--nap); } }
+  .row .mid { flex: 1; min-width: 0; }
+  .row .t1 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+  .row .t2 { font-size: 13px; color: var(--muted); margin-top: 2px; }
+  .row .dur { font-size: 16px; font-weight: 650; letter-spacing: -0.02em; }
+  .row .dur.live { color: var(--night); }
+  @media (prefers-color-scheme: dark) { .row .dur.live { color: var(--night-2); } }
+  .empty-state { text-align: center; color: var(--muted); font-size: 14px; padding: 34px 20px; background: var(--card); border-radius: var(--radius); margin-top: 12px; box-shadow: var(--shadow); }
+  .empty-state .moon { font-size: 34px; margin-bottom: 8px; }
+  .more { display: block; margin: 14px auto 0; color: var(--muted); font-weight: 600; font-size: 14px; padding: 8px 14px; }
+
+  /* ---------- Sheet ---------- */
+  .scrim { position: fixed; inset: 0; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity .3s ease; z-index: 20; -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
+  .scrim.open { opacity: 1; pointer-events: auto; }
+  .sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 21;
+    max-width: 480px; margin: 0 auto;
+    background: var(--sheet-bg); border-radius: 28px 28px 0 0;
+    padding: 10px 20px calc(env(safe-area-inset-bottom) + 20px);
+    transform: translateY(105%); transition: transform .38s cubic-bezier(.3,.7,.2,1);
+    max-height: 90vh; overflow-y: auto;
+  }
+  .sheet.open { transform: translateY(0); }
+  .grab { width: 38px; height: 5px; border-radius: 3px; background: var(--faint); opacity: .5; margin: 0 auto 16px; }
+  .sheet h3 { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; margin: 0 0 4px; }
+  .sheet p.hint { margin: 0 0 18px; color: var(--muted); font-size: 14px; }
+  .field { background: var(--card-2); border-radius: 16px; padding: 10px 14px; margin-bottom: 10px; display: block; }
+  .field span { display: block; font-size: 12px; color: var(--muted); font-weight: 600; }
+  .field input { width: 100%; border: 0; background: transparent; outline: none; font-size: 17px; font-weight: 600; padding: 4px 0 2px; min-height: 30px; }
+  .field input::-webkit-date-and-time-value { text-align: left; }
+  .preview { text-align: center; font-size: 14px; color: var(--muted); margin: 6px 0 14px; min-height: 20px; }
+  .preview b { color: var(--text); }
+  .preview.bad b { color: var(--danger); }
+  .btn { width: 100%; height: 54px; border-radius: 16px; font-size: 17px; font-weight: 650; background: var(--btn); color: var(--btn-text); transition: transform .15s, opacity .2s; }
+  .btn:active { transform: scale(.98); }
+  .btn:disabled { opacity: .35; }
+  .btn.ghost { background: transparent; color: var(--danger); margin-top: 6px; }
+  .btn.soft { background: var(--card-2); color: var(--text); margin-top: 10px; }
+  .menu { background: var(--card-2); border-radius: 18px; overflow: hidden; margin: 14px 0; }
+  .menu button, .menu label.mi { display: flex; align-items: center; gap: 12px; width: 100%; padding: 15px 16px; font-size: 16px; font-weight: 550; text-align: left; cursor: pointer; }
+  .menu > * + * { border-top: 1px solid var(--line); }
+  .menu .danger { color: var(--danger); }
+  .menu svg { width: 20px; height: 20px; color: var(--muted); }
+  .menu .danger svg { color: var(--danger); }
+  .foot { text-align: center; font-size: 12px; color: var(--faint); margin-top: 8px; line-height: 1.5; }
+
+  /* ---------- Toast ---------- */
+  .toast {
+    position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 20px); z-index: 30;
+    transform: translate(-50%, calc(100% + 60px)); opacity: 0; transition: transform .35s cubic-bezier(.3,.7,.2,1), opacity .25s;
+    background: #1d1d26; color: #fff; border-radius: 16px; padding: 12px 12px 12px 16px;
+    display: flex; align-items: center; gap: 14px; font-size: 15px; font-weight: 550;
+    box-shadow: 0 10px 30px rgba(0,0,0,.25); max-width: calc(100% - 32px); white-space: nowrap;
+  }
+  @media (prefers-color-scheme: dark) { .toast { background: #2a2a35; } }
+  .toast.show { transform: translate(-50%, 0); opacity: 1; }
+  .toast button { color: var(--night-2); font-weight: 700; padding: 4px 8px; }
+
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="top">
+    <div>
+      <div class="hello" id="hello">Hello</div>
+      <div class="name" id="babyName">Sye</div>
+    </div>
+    <button class="avatar" id="avatar" aria-label="Settings">S</button>
+  </header>
+
+  <section class="hero" id="hero">
+    <div class="status"><span class="dot"></span><span id="statusText">Awake</span></div>
+    <div class="timer" id="timer">–</div>
+    <div class="sub" id="sub"></div>
+    <button class="main-btn" id="mainBtn"></button>
+  </section>
+
+  <div class="tiles">
+    <div class="tile"><div class="label">Slept today</div><div class="val" id="tTotal">0m</div></div>
+    <div class="tile"><div class="label">Naps</div><div class="val" id="tNaps">0</div></div>
+    <div class="tile"><div class="label">Longest</div><div class="val" id="tLong">–</div></div>
+  </div>
+
+  <section class="card">
+    <div class="card-head">
+      <div>
+        <div class="eyebrow" id="chartEyebrow">Daily average</div>
+        <div class="big" id="chartBig">0h</div>
+        <div class="delta" id="chartDelta"></div>
+      </div>
+      <div class="seg" id="rangeSeg">
+        <span class="thumb"></span>
+        <button data-n="7" class="on">7D</button>
+        <button data-n="14">14D</button>
+        <button data-n="30">30D</button>
+      </div>
+    </div>
+    <div class="chart" id="chart">
+      <div class="grid" id="grid"></div>
+      <div class="bars" id="bars"></div>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--night)"></i>Night</span>
+      <span><i style="background:var(--nap)"></i>Naps</span>
+      <span style="margin-left:auto">Days run 7am → 7am</span>
+    </div>
+  </section>
+
+  <div class="list-head">
+    <h2>History</h2>
+    <button class="pill-btn" id="addBtn">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      Add
+    </button>
+  </div>
+  <div id="history"></div>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<!-- Add / edit sheet -->
+<div class="sheet" id="editSheet" role="dialog" aria-modal="true">
+  <div class="grab"></div>
+  <h3 id="editTitle">Add sleep</h3>
+  <p class="hint" id="editHint">Forgot to tap the button? Add it here.</p>
+  <label class="field"><span>Fell asleep</span><input type="datetime-local" id="inStart"></label>
+  <label class="field" id="endField"><span>Woke up</span><input type="datetime-local" id="inEnd"></label>
+  <div class="preview" id="preview"></div>
+  <button class="btn" id="saveBtn">Save</button>
+  <button class="btn ghost" id="delBtn">Delete</button>
+</div>
+
+<!-- Settings sheet -->
+<div class="sheet" id="setSheet" role="dialog" aria-modal="true">
+  <div class="grab"></div>
+  <h3>Settings</h3>
+  <p class="hint">Everything stays on this phone. Nothing is uploaded anywhere.</p>
+  <label class="field"><span>Baby's name</span><input type="text" id="inName" maxlength="24" autocomplete="off"></label>
+  <div class="menu">
+    <button id="exportBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
+      Save a backup
+    </button>
+    <label class="mi">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15V3M7 10l5 5 5-5M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
+      Restore from backup
+      <input type="file" id="importInput" accept=".json,application/json" hidden>
+    </label>
+    <button id="wipeBtn" class="danger">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>
+      Delete all data
+    </button>
+  </div>
+  <button class="btn" id="setDone">Done</button>
+  <div class="foot" id="foot"></div>
+</div>
+
+<div class="toast" id="toast"><span id="toastText"></span><button id="toastBtn" hidden>Undo</button></div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ---------- Storage ----------
+  const KEY = 'sleeptracker.v1';
+  const DAY_START_HOUR = 7;   // a "sleep day" runs 7am -> 7am
+  const NIGHT_START_HOUR = 19; // 7pm -> 7am counts as night
+
+  let state = load();
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        return { name: s.name || 'Sye', sleeps: Array.isArray(s.sleeps) ? s.sleeps : [], active: s.active || null };
+      }
+    } catch (e) {}
+    return { name: 'Sye', sleeps: [], active: null };
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+  }
+  // Ask the browser to never evict our data.
+  try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
+
+  // ---------- Helpers ----------
+  const $ = (id) => document.getElementById(id);
+  const MIN = 60000, HOUR = 3600000;
+  const pad = (n) => String(n).padStart(2, '0');
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+  const buzz = (ms = 10) => { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} };
+
+  function fmtDur(ms, html) {
+    const m = Math.max(0, Math.round(ms / MIN));
+    const h = Math.floor(m / 60), r = m % 60;
+    if (!html) return h ? (r ? `${h}h ${r}m` : `${h}h`) : `${r}m`;
+    if (!h) return `${r}<span>m</span>`;
+    return r ? `${h}<span>h</span> ${r}<span>m</span>` : `${h}<span>h</span>`;
+  }
+  function fmtTime(t) {
+    const d = new Date(t);
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  function dayKey(d) { return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`; }
+  function keyToDate(k) { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); }
+  function addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+  function at(d, h) { const x = new Date(d); x.setHours(h, 0, 0, 0); return x.getTime(); }
+
+  // The sleep-day a moment belongs to (before 7am counts as the previous day).
+  function sleepDayOf(t) {
+    const d = new Date(t);
+    return dayKey(d.getHours() < DAY_START_HOUR ? addDays(d, -1) : d);
+  }
+
+  // Split an interval into {key, night, ms} chunks on 7am / 7pm boundaries.
+  function split(s, e) {
+    const out = [];
+    let t = s;
+    while (t < e) {
+      const d = new Date(t), h = d.getHours();
+      let next, night, key;
+      if (h < DAY_START_HOUR) { next = at(d, DAY_START_HOUR); night = true; key = dayKey(addDays(d, -1)); }
+      else if (h < NIGHT_START_HOUR) { next = at(d, NIGHT_START_HOUR); night = false; key = dayKey(d); }
+      else { next = at(addDays(d, 1), DAY_START_HOUR); night = true; key = dayKey(d); }
+      if (next <= t) next = t + HOUR; // DST safety
+      const end = Math.min(next, e);
+      out.push({ key, night, ms: end - t });
+      t = end;
+    }
+    return out;
+  }
+  function isNight(s, e) {
+    let n = 0, d = 0;
+    for (const c of split(s, e)) c.night ? (n += c.ms) : (d += c.ms);
+    return n >= d;
+  }
+
+  function allSleeps(now) {
+    const list = state.sleeps.slice();
+    if (state.active) list.push({ id: 'active', start: state.active, end: now, live: true });
+    return list;
+  }
+
+  function totalsByDay(now) {
+    const map = {};
+    for (const s of allSleeps(now)) {
+      for (const c of split(s.start, s.end)) {
+        const m = map[c.key] || (map[c.key] = { night: 0, nap: 0 });
+        c.night ? (m.night += c.ms) : (m.nap += c.ms);
+      }
+    }
+    return map;
+  }
+
+  // ---------- Hero ----------
+  const ICON_MOON = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.3A8.5 8.5 0 0 1 9.7 3.5a.6.6 0 0 0-.8-.7A9.5 9.5 0 1 0 21.2 15.1a.6.6 0 0 0-.7-.8Z"/></svg>';
+  const ICON_SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2" fill="currentColor" stroke="none"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>';
+
+  function renderHero(now) {
+    const hero = $('hero');
+    const sleeping = !!state.active;
+    hero.classList.toggle('sleeping', sleeping);
+
+    let ms, label, sub;
+    if (sleeping) {
+      ms = now - state.active;
+      label = isNight(state.active, now) ? 'Sleeping · night' : 'Napping';
+      sub = `Fell asleep at ${fmtTime(state.active)} · <button id="adjBtn">Adjust</button>`;
+    } else {
+      const last = state.sleeps.reduce((a, s) => (s.end > a ? s.end : a), 0);
+      if (last) {
+        ms = now - last;
+        label = 'Awake';
+        sub = `Woke up at ${fmtTime(last)}${new Date(last).toDateString() !== new Date(now).toDateString() ? ' yesterday' : ''}`;
+      } else {
+        ms = null;
+        label = 'Ready when you are';
+        sub = 'Tap the button when ' + escapeHtml(state.name) + ' falls asleep.';
+      }
+    }
+    $('statusText').textContent = label;
+
+    if (ms == null) {
+      $('timer').innerHTML = '0<small>m</small>';
+    } else {
+      const totalS = Math.floor(ms / 1000);
+      const h = Math.floor(totalS / 3600), m = Math.floor((totalS % 3600) / 60), s = totalS % 60;
+      $('timer').innerHTML = (h ? `${h}<small>h</small> ` : '') + `${m}<small>m</small> <small class="sec">${pad(s)}s</small>`;
+    }
+    if ($('sub').dataset.html !== sub) {
+      $('sub').innerHTML = sub;
+      $('sub').dataset.html = sub;
+      const adj = $('adjBtn');
+      if (adj) adj.onclick = () => openEdit('active');
+    }
+    const btnHtml = sleeping ? `${ICON_SUN}<span>Wake up</span>` : `${ICON_MOON}<span>Start sleep</span>`;
+    if ($('mainBtn').dataset.html !== btnHtml) {
+      $('mainBtn').innerHTML = btnHtml;
+      $('mainBtn').dataset.html = btnHtml;
+    }
+  }
+
+  $('mainBtn').addEventListener('click', () => {
+    const now = Date.now();
+    if (state.active) {
+      const start = state.active;
+      if (now - start < MIN) {
+        state.active = null; save(); renderAll();
+        toast('Too short to save');
+        buzz(20);
+        return;
+      }
+      const s = { id: uid(), start, end: now };
+      state.sleeps.push(s); state.active = null; save();
+      buzz([12, 60, 12]);
+      toast(`Slept ${fmtDur(now - start)}`, () => { state.sleeps = state.sleeps.filter(x => x.id !== s.id); state.active = start; save(); renderAll(); });
+    } else {
+      state.active = now; save();
+      buzz(15);
+      toast('Sweet dreams 🌙', () => { state.active = null; save(); renderAll(); });
+    }
+    renderAll();
+  });
+
+  // ---------- Tiles ----------
+  function renderTiles(now, totals) {
+    const today = sleepDayOf(now);
+    const t = totals[today] || { night: 0, nap: 0 };
+    $('tTotal').innerHTML = fmtDur(t.night + t.nap, true);
+    let naps = 0, longest = 0;
+    for (const s of allSleeps(now)) {
+      if (sleepDayOf(s.start) !== today) continue;
+      if (!isNight(s.start, s.end)) naps++;
+      longest = Math.max(longest, s.end - s.start);
+    }
+    $('tNaps').textContent = naps;
+    $('tLong').innerHTML = longest ? fmtDur(longest, true) : '–';
+  }
+
+  // ---------- Chart ----------
+  let range = 7, selected = null;
+  const WD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  const WDL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+  function chartDays(now) {
+    const end = keyToDate(sleepDayOf(now));
+    const days = [];
+    for (let i = range - 1; i >= 0; i--) days.push(dayKey(addDays(end, -i)));
+    return days;
+  }
+
+  function renderChart(now, totals) {
+    const days = chartDays(now);
+    const today = days[days.length - 1];
+    const vals = days.map(k => ({ k, ...(totals[k] || { night: 0, nap: 0 }) }));
+    const sum = v => v.night + v.nap;
+    const max = Math.max(4 * HOUR, ...vals.map(sum));
+    const step = max > 12 * HOUR ? 6 * HOUR : max > 6 * HOUR ? 4 * HOUR : 2 * HOUR;
+    const top = Math.ceil(max / step) * step;
+
+    // Average over finished days that have data; fall back to today.
+    const done = vals.filter(v => v.k !== today && sum(v) > 0);
+    const pool = done.length ? done : vals.filter(v => sum(v) > 0);
+    const avg = pool.length ? pool.reduce((a, v) => a + sum(v), 0) / pool.length : 0;
+
+    // grid
+    const grid = $('grid');
+    let g = '';
+    for (let y = 0; y <= top; y += step) {
+      g += `<div class="gl" style="bottom:${(y / top) * 100}%"><b>${y / HOUR}h</b></div>`;
+    }
+    if (avg) g += `<div class="avg-line" style="bottom:${(avg / top) * 100}%"></div>`;
+    grid.innerHTML = g;
+
+    // bars — reuse nodes so heights animate
+    const bars = $('bars');
+    bars.style.setProperty('--gap', range === 7 ? '12px' : range === 14 ? '6px' : '3px');
+    if (bars.children.length !== vals.length) {
+      bars.innerHTML = vals.map(() => '<div class="col"><div class="stack"><div class="seg-nap" style="height:0"></div><div class="seg-night" style="height:0"></div></div><div class="xl"></div></div>').join('');
+      [...bars.children].forEach((c, i) => c.addEventListener('click', () => {
+        selected = selected === i ? null : i; buzz(6); renderChart(Date.now(), totalsByDay(Date.now()));
+      }));
+    }
+    const labelEvery = range === 7 ? 1 : range === 14 ? 2 : 5;
+    vals.forEach((v, i) => {
+      const col = bars.children[i];
+      col.classList.toggle('today', v.k === today);
+      col.classList.toggle('sel', selected === i);
+      const nap = col.querySelector('.seg-nap'), night = col.querySelector('.seg-night');
+      requestAnimationFrame(() => {
+        night.style.height = `${(v.night / top) * 100}%`;
+        nap.style.height = `${(v.nap / top) * 100}%`;
+      });
+      nap.classList.toggle('empty', v.nap === 0 || v.night === 0);
+      const d = keyToDate(v.k);
+      const fromEnd = vals.length - 1 - i;
+      col.querySelector('.xl').textContent = range === 7 ? WD[d.getDay()] : (fromEnd % labelEvery === 0 ? d.getDate() : '');
+    });
+    bars.classList.toggle('has-sel', selected != null);
+
+    // header
+    if (selected != null && vals[selected]) {
+      const v = vals[selected], d = keyToDate(v.k);
+      $('chartEyebrow').textContent = v.k === today ? 'Today so far' : `${WDL[d.getDay()]}, ${d.getDate()} ${MON[d.getMonth()]}`;
+      $('chartBig').innerHTML = fmtDur(sum(v), true);
+      $('chartDelta').className = 'delta';
+      $('chartDelta').textContent = sum(v) ? `${fmtDur(v.night)} night · ${fmtDur(v.nap)} naps` : 'No sleep logged';
+    } else {
+      $('chartEyebrow').textContent = `Daily average · ${range} days`;
+      $('chartBig').innerHTML = avg ? fmtDur(avg, true) : '0<span>h</span>';
+      // Compare to the previous period of the same length
+      const prevEnd = addDays(keyToDate(days[0]), -1);
+      let pSum = 0, pN = 0;
+      for (let i = 0; i < range; i++) {
+        const t = totals[dayKey(addDays(prevEnd, -i))];
+        if (t && t.night + t.nap > 0) { pSum += t.night + t.nap; pN++; }
+      }
+      const el = $('chartDelta');
+      if (avg && pN) {
+        const diff = avg - pSum / pN;
+        el.className = 'delta' + (diff > 0 ? ' up' : '');
+        el.textContent = Math.abs(diff) < MIN ? 'Same as previous period' : `${diff > 0 ? '▲' : '▼'} ${fmtDur(Math.abs(diff))} vs last ${range}d`;
+      } else {
+        el.className = 'delta';
+        el.textContent = avg ? 'Tap a bar for details' : 'Your chart fills in as you log sleep';
+      }
+    }
+  }
+
+  // segmented control
+  const seg = $('rangeSeg');
+  function placeThumb() {
+    const on = seg.querySelector('.on'), th = seg.querySelector('.thumb');
+    th.style.left = on.offsetLeft + 'px'; th.style.width = on.offsetWidth + 'px';
+  }
+  seg.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    seg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+    range = +b.dataset.n; selected = null; buzz(6);
+    placeThumb();
+    const now = Date.now(); renderChart(now, totalsByDay(now));
+  }));
+
+  // ---------- History ----------
+  let showDays = 7;
+  function relDay(k, now) {
+    const today = sleepDayOf(now);
+    if (k === today) return 'Today';
+    if (k === dayKey(addDays(keyToDate(today), -1))) return 'Yesterday';
+    const d = keyToDate(k);
+    return `${WDL[d.getDay()].slice(0, 3)}, ${d.getDate()} ${MON[d.getMonth()]}`;
+  }
+  function renderHistory(now, totals) {
+    const list = allSleeps(now).sort((a, b) => b.start - a.start);
+    const el = $('history');
+    if (!list.length) {
+      el.innerHTML = `<div class="empty-state"><div class="moon">🌙</div>No sleep logged yet.<br>Tap <b>Start sleep</b> above, or <b>Add</b> one you missed.</div>`;
+      return;
+    }
+    const groups = new Map();
+    for (const s of list) {
+      const k = sleepDayOf(s.start);
+      if (!groups.has(k)) groups.set(k, []);
+      groups.get(k).push(s);
+    }
+    let html = '', n = 0;
+    for (const [k, items] of groups) {
+      if (n++ >= showDays) break;
+      const t = totals[k] || { night: 0, nap: 0 };
+      html += `<div class="day"><div class="day-h"><span>${relDay(k, now)}</span><span>${fmtDur(t.night + t.nap)}</span></div>`;
+      for (const s of items) {
+        const night = isNight(s.start, s.end);
+        html += `<button class="row" data-id="${s.id}">
+          <div class="ico ${night ? 'night' : 'nap'}">${night ? ICON_MOON : ICON_SUN}</div>
+          <div class="mid"><div class="t1">${night ? 'Night sleep' : 'Nap'}</div>
+          <div class="t2">${fmtTime(s.start)} – ${s.live ? 'now' : fmtTime(s.end)}</div></div>
+          <div class="dur${s.live ? ' live' : ''}">${fmtDur(s.end - s.start)}</div>
+        </button>`;
+      }
+      html += '</div>';
+    }
+    if (groups.size > showDays) html += `<button class="more" id="moreBtn">Show more</button>`;
+    el.innerHTML = html;
+    el.querySelectorAll('.row').forEach(r => r.addEventListener('click', () => openEdit(r.dataset.id)));
+    const more = $('moreBtn');
+    if (more) more.onclick = () => { showDays += 14; renderAll(); };
+  }
+
+  // ---------- Header ----------
+  function renderHeader(now) {
+    const h = new Date(now).getHours();
+    $('hello').textContent = h < 5 ? 'Late night with' : h < 12 ? 'Good morning,' : h < 18 ? 'Good afternoon,' : 'Good evening,';
+    $('babyName').textContent = state.name;
+    $('avatar').textContent = (state.name.trim()[0] || 'S').toUpperCase();
+    document.title = `${state.name} · Sleep`;
+  }
+
+  function renderAll() {
+    const now = Date.now();
+    const totals = totalsByDay(now);
+    renderHeader(now);
+    renderHero(now);
+    renderTiles(now, totals);
+    renderChart(now, totals);
+    renderHistory(now, totals);
+  }
+
+  // ---------- Sheets ----------
+  let openSheet = null;
+  function show(sheet) {
+    openSheet = sheet;
+    $('scrim').classList.add('open');
+    sheet.classList.add('open');
+  }
+  function hide() {
+    if (!openSheet) return;
+    openSheet.classList.remove('open');
+    $('scrim').classList.remove('open');
+    document.activeElement && document.activeElement.blur();
+    openSheet = null;
+  }
+  $('scrim').addEventListener('click', hide);
+
+  // swipe down to close
+  document.querySelectorAll('.sheet').forEach(sh => {
+    let y0 = null, dy = 0;
+    sh.addEventListener('touchstart', e => { if (sh.scrollTop <= 0) { y0 = e.touches[0].clientY; dy = 0; } }, { passive: true });
+    sh.addEventListener('touchmove', e => {
+      if (y0 == null) return;
+      dy = e.touches[0].clientY - y0;
+      if (dy > 0) { sh.style.transition = 'none'; sh.style.transform = `translateY(${dy}px)`; }
+    }, { passive: true });
+    sh.addEventListener('touchend', () => {
+      if (y0 == null) return;
+      sh.style.transition = ''; sh.style.transform = '';
+      if (dy > 90) hide();
+      y0 = null;
+    });
+  });
+
+  const toLocalInput = (t) => {
+    const d = new Date(t);
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  };
+  const fromLocalInput = (v) => v ? new Date(v).getTime() : NaN;
+
+  let editing = null; // null = new, 'active' = running sleep, else id
+  function openEdit(id) {
+    editing = id || null;
+    const now = Date.now();
+    const s = id && id !== 'active' ? state.sleeps.find(x => x.id === id) : null;
+    if (id === 'active') {
+      $('editTitle').textContent = 'Adjust start';
+      $('editHint').textContent = 'When did the current sleep start?';
+      $('inStart').value = toLocalInput(state.active);
+      $('endField').style.display = 'none';
+      $('delBtn').textContent = 'Cancel this sleep';
+      $('delBtn').style.display = '';
+    } else if (s) {
+      $('editTitle').textContent = isNight(s.start, s.end) ? 'Night sleep' : 'Nap';
+      $('editHint').textContent = 'Change the times or delete this entry.';
+      $('inStart').value = toLocalInput(s.start);
+      $('inEnd').value = toLocalInput(s.end);
+      $('endField').style.display = '';
+      $('delBtn').textContent = 'Delete';
+      $('delBtn').style.display = '';
+    } else {
+      $('editTitle').textContent = 'Add sleep';
+      $('editHint').textContent = 'Forgot to tap the button? Add it here.';
+      $('inStart').value = toLocalInput(now - HOUR);
+      $('inEnd').value = toLocalInput(now);
+      $('endField').style.display = '';
+      $('delBtn').style.display = 'none';
+    }
+    updatePreview();
+    show($('editSheet'));
+  }
+  function readEdit() {
+    const s = fromLocalInput($('inStart').value);
+    const e = editing === 'active' ? Date.now() : fromLocalInput($('inEnd').value);
+    return { s, e };
+  }
+  function updatePreview() {
+    const { s, e } = readEdit();
+    const p = $('preview');
+    let ok = true, msg;
+    if (isNaN(s) || isNaN(e)) { ok = false; msg = '<b>Pick both times</b>'; }
+    else if (s > Date.now()) { ok = false; msg = '<b>That’s in the future</b>'; }
+    else if (e <= s) { ok = false; msg = '<b>Wake-up must be after falling asleep</b>'; }
+    else if (e - s > 24 * HOUR) { ok = false; msg = '<b>That’s longer than 24 hours</b>'; }
+    else msg = editing === 'active' ? `Asleep for <b>${fmtDur(e - s)}</b> so far` : `<b>${fmtDur(e - s)}</b> · ${isNight(s, e) ? 'night sleep' : 'nap'}`;
+    p.innerHTML = msg;
+    p.classList.toggle('bad', !ok);
+    $('saveBtn').disabled = !ok;
+  }
+  $('inStart').addEventListener('input', updatePreview);
+  $('inEnd').addEventListener('input', updatePreview);
+
+  $('saveBtn').addEventListener('click', () => {
+    const { s, e } = readEdit();
+    if (editing === 'active') {
+      state.active = s;
+    } else if (editing) {
+      const x = state.sleeps.find(x => x.id === editing);
+      if (x) { x.start = s; x.end = Math.min(e, Date.now()); }
+    } else {
+      state.sleeps.push({ id: uid(), start: s, end: Math.min(e, Date.now()) });
+    }
+    save(); hide(); buzz(10); renderAll();
+    toast('Saved');
+  });
+
+  $('delBtn').addEventListener('click', () => {
+    if (editing === 'active') {
+      const prev = state.active;
+      state.active = null; save(); hide(); renderAll();
+      toast('Sleep cancelled', () => { state.active = prev; save(); renderAll(); });
+      return;
+    }
+    const idx = state.sleeps.findIndex(x => x.id === editing);
+    if (idx < 0) return hide();
+    const [removed] = state.sleeps.splice(idx, 1);
+    save(); hide(); buzz(20); renderAll();
+    toast('Deleted', () => { state.sleeps.push(removed); save(); renderAll(); });
+  });
+
+  $('addBtn').addEventListener('click', () => openEdit(null));
+
+  // Settings
+  $('avatar').addEventListener('click', () => {
+    $('inName').value = state.name;
+    $('foot').textContent = `${state.sleeps.length} sleeps logged`;
+    show($('setSheet'));
+  });
+  $('inName').addEventListener('input', () => {
+    state.name = $('inName').value.trim() || 'Sye';
+    save(); renderHeader(Date.now());
+  });
+  $('setDone').addEventListener('click', hide);
+
+  $('exportBtn').addEventListener('click', async () => {
+    const data = JSON.stringify({ app: 'sleep-tracker', version: 1, exported: new Date().toISOString(), ...state }, null, 2);
+    const name = `${state.name.replace(/[^\w-]+/g, '') || 'baby'}-sleep-${dayKey(new Date())}.json`;
+    const file = new File([data], name, { type: 'application/json' });
+    try {
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: 'Sleep backup' });
+        return;
+      }
+    } catch (e) { if (e && e.name === 'AbortError') return; }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(file); a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    toast('Backup saved');
+  });
+
+  $('importInput').addEventListener('change', async (ev) => {
+    const f = ev.target.files && ev.target.files[0];
+    ev.target.value = '';
+    if (!f) return;
+    try {
+      const d = JSON.parse(await f.text());
+      if (!Array.isArray(d.sleeps)) throw new Error('bad');
+      const clean = d.sleeps
+        .filter(s => s && typeof s.start === 'number' && typeof s.end === 'number' && s.end > s.start)
+        .map(s => ({ id: String(s.id || uid()), start: s.start, end: s.end }));
+      // merge, skipping exact duplicates
+      const seen = new Set(state.sleeps.map(s => s.start + ':' + s.end));
+      let added = 0;
+      for (const s of clean) if (!seen.has(s.start + ':' + s.end)) { state.sleeps.push(s); added++; }
+      if (d.name && state.name === 'Sye') state.name = String(d.name).slice(0, 24);
+      save(); hide(); renderAll();
+      toast(`Restored ${added} sleep${added === 1 ? '' : 's'}`);
+    } catch (e) {
+      toast('That file isn’t a backup');
+    }
+  });
+
+  $('wipeBtn').addEventListener('click', () => {
+    if (!confirm('Delete all sleep data on this phone? This can’t be undone (unless you have a backup).')) return;
+    state = { name: state.name, sleeps: [], active: null };
+    save(); hide(); renderAll();
+    toast('All data deleted');
+  });
+
+  // ---------- Toast ----------
+  let toastTimer;
+  function toast(text, undo) {
+    $('toastText').textContent = text;
+    const b = $('toastBtn');
+    b.hidden = !undo;
+    b.onclick = () => { undo && undo(); $('toast').classList.remove('show'); buzz(8); };
+    $('toast').classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => $('toast').classList.remove('show'), undo ? 4500 : 2200);
+  }
+
+  function escapeHtml(s) { return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
+
+  // ---------- Tick ----------
+  renderAll();
+  requestAnimationFrame(placeThumb);
+  window.addEventListener('resize', placeThumb);
+  let lastMinute = Math.floor(Date.now() / MIN);
+  setInterval(() => {
+    const now = Date.now();
+    renderHero(now);
+    const m = Math.floor(now / MIN);
+    if (m !== lastMinute) { lastMinute = m; renderAll(); }
+  }, 1000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { state = load(); renderAll(); } });
+
+  // ---------- Offline ----------
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+})();
+</script>
+</body>
+</html>
