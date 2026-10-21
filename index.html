@@ -29,6 +29,9 @@
     --nap-2: #ffcf80;
     --good: #18b67a;
     --danger: #ff4d5e;
+    --milk: #2f8cf0;
+    --solid: #1fa868;
+    --rail: rgba(10, 10, 20, 0.09);
     --btn: #0b0b10;
     --btn-text: #ffffff;
     --shadow: 0 1px 2px rgba(10, 10, 30, 0.04), 0 8px 24px rgba(10, 10, 30, 0.06);
@@ -50,6 +53,9 @@
       --night-2: #a497ff;
       --nap: #ffb547;
       --nap-2: #ffd08a;
+      --milk: #5aa9ff;
+      --solid: #3ccf8a;
+      --rail: rgba(255, 255, 255, 0.08);
       --btn: #ffffff;
       --btn-text: #0b0b10;
       --shadow: none;
@@ -242,6 +248,73 @@
   .menu svg { width: 20px; height: 20px; color: var(--muted); }
   .menu .danger svg { color: var(--danger); }
   .foot { text-align: center; font-size: 12px; color: var(--faint); margin-top: 8px; line-height: 1.5; }
+  .menu .right { margin-left: auto; font-size: 14px; color: var(--muted); font-weight: 550; display: inline-flex; align-items: center; gap: 6px; }
+
+  /* ---------- Sync ---------- */
+  .avatar { position: relative; }
+  .avatar .badge {
+    position: absolute; right: -1px; bottom: -1px; width: 13px; height: 13px; border-radius: 50%;
+    border: 2.5px solid var(--bg); display: none;
+  }
+  .sdot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); display: inline-block; flex-shrink: 0; }
+  .s-live { background: var(--good); }
+  .s-wait { background: var(--nap); }
+  .s-error { background: var(--danger); }
+  .avatar .badge.s-live, .avatar .badge.s-wait, .avatar .badge.s-error { display: block; }
+  .sync-status { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--muted); margin: -6px 0 16px; }
+  .code-card { background: var(--card-2); border-radius: 18px; padding: 16px; text-align: center; margin-bottom: 10px; }
+  .code-card span { display: block; font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
+  .code-card b { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 19px; letter-spacing: .04em; font-weight: 700; word-break: break-all; user-select: all; -webkit-user-select: all; }
+  .field input.code { font-family: ui-monospace, "SF Mono", Menlo, monospace; text-transform: uppercase; letter-spacing: .04em; }
+  .steps { margin: 0 0 16px; padding-left: 20px; color: var(--muted); font-size: 14px; line-height: 1.55; }
+  .steps b { color: var(--text); }
+
+  /* ---------- Feeds ---------- */
+  .quick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  .qa { background: var(--card); border-radius: 20px; padding: 14px; display: flex; align-items: center; gap: 12px; text-align: left; box-shadow: var(--shadow); transition: transform .15s ease; min-width: 0; }
+  .qa:active { transform: scale(.97); }
+  .qa > span:last-child { min-width: 0; }
+  .qa b { display: block; font-size: 16px; font-weight: 650; letter-spacing: -0.01em; }
+  .qa small { display: block; font-size: 12px; color: var(--muted); font-weight: 500; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ico.milk { background: rgba(47, 140, 240, 0.14); color: var(--milk); }
+  .ico.solid { background: rgba(31, 168, 104, 0.15); color: var(--solid); }
+  .seg.wide { display: flex; width: 100%; margin-bottom: 12px; }
+  .seg.wide button { flex: 1; padding: 10px; font-size: 15px; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 14px; }
+  .chip { padding: 8px 14px; border-radius: 999px; background: var(--card-2); font-size: 14px; font-weight: 600; transition: background .2s, color .2s, transform .1s; }
+  .chip:active { transform: scale(.95); }
+  .chip.on { background: var(--btn); color: var(--btn-text); }
+  .field-row { display: flex; align-items: baseline; gap: 6px; }
+  .field-row input { flex: 1; min-width: 0; }
+  .field-row em { font-style: normal; font-size: 17px; font-weight: 600; color: var(--muted); }
+  .menu .ico { width: 36px; height: 36px; }
+  .menu .ico svg { width: 18px; height: 18px; color: inherit; }
+
+  /* ---------- Timeline ---------- */
+  .tl { padding: 2px 0 8px; }
+  .tl-item {
+    display: grid; grid-template-columns: 42px 36px 1fr auto; align-items: center; column-gap: 12px;
+    width: 100%; padding: 9px 18px 9px 12px; text-align: left; position: relative; transition: background .15s;
+  }
+  .tl-item:active { background: var(--card-2); }
+  .tl-item::before { content: ""; position: absolute; left: 83px; top: 0; bottom: 0; width: 2px; background: var(--rail); }
+  .tl-item:first-child::before { top: 50%; }
+  .tl-item:last-child::before { bottom: 50%; }
+  .tl-item:only-child::before { display: none; }
+  .tl-time { font-size: 13px; font-weight: 600; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+  .tl-item .ico { width: 36px; height: 36px; position: relative; z-index: 1; box-shadow: 0 0 0 4px var(--card); }
+  .tl-item .ico svg { width: 17px; height: 17px; }
+  .tl-item .ico.night { background: color-mix(in srgb, var(--night) 16%, var(--card)); }
+  .tl-item .ico.nap { background: color-mix(in srgb, var(--nap) 20%, var(--card)); }
+  .tl-item .ico.milk { background: color-mix(in srgb, var(--milk) 15%, var(--card)); }
+  .tl-item .ico.solid { background: color-mix(in srgb, var(--solid) 16%, var(--card)); }
+  .tl-item.live .ico::after { content: ""; position: absolute; inset: -3px; border-radius: 50%; border: 2px solid var(--night-2); animation: ping 2s ease-out infinite; }
+  .tl-item .mid { min-width: 0; }
+  .tl-item .t1 { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tl-item .t2 { font-size: 13px; color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tl-item .dur { font-size: 15px; font-weight: 650; letter-spacing: -0.02em; white-space: nowrap; }
+  .tl-item .dur.live { color: var(--night); }
+  @media (prefers-color-scheme: dark) { .tl-item .dur.live { color: var(--night-2); } }
 
   /* ---------- Toast ---------- */
   .toast {
@@ -266,7 +339,7 @@
       <div class="hello" id="hello">Hello</div>
       <div class="name" id="babyName">Sye</div>
     </div>
-    <button class="avatar" id="avatar" aria-label="Settings">S</button>
+    <button class="avatar" id="avatar" aria-label="Settings"><span id="avatarLetter">S</span><i class="badge" id="syncBadge"></i></button>
   </header>
 
   <section class="hero" id="hero">
@@ -275,6 +348,11 @@
     <div class="sub" id="sub"></div>
     <button class="main-btn" id="mainBtn"></button>
   </section>
+
+  <div class="quick">
+    <button class="qa" data-feed="milk"><span class="ico milk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4M10.5 2v3M13.5 2v3M9 5h6l1.2 3.2V19a3 3 0 0 1-3 3h-2.4a3 3 0 0 1-3-3V8.2Z"/><path d="M8.5 12H12M8.5 16H12"/></svg></span><span><b>Liquids</b><small id="qaMilk">Log a drink</small></span></button>
+    <button class="qa" data-feed="solid"><span class="ico solid"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18a9 8 0 0 1-18 0Z"/><path d="M15.5 3.5 12.5 10"/><path d="M8 9.5c0-1.4 1-1.6 1-3"/></svg></span><span><b>Solids</b><small id="qaSolid">Log a meal</small></span></button>
+  </div>
 
   <div class="tiles">
     <div class="tile"><div class="label">Slept today</div><div class="val" id="tTotal">0m</div></div>
@@ -308,7 +386,7 @@
   </section>
 
   <div class="list-head">
-    <h2>History</h2>
+    <h2>Timeline</h2>
     <button class="pill-btn" id="addBtn">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
       Add
@@ -331,12 +409,56 @@
   <button class="btn ghost" id="delBtn">Delete</button>
 </div>
 
+<!-- Add chooser -->
+<div class="sheet" id="addSheet" role="dialog" aria-modal="true">
+  <div class="grab"></div>
+  <h3>Add to timeline</h3>
+  <p class="hint">Log something you missed.</p>
+  <div class="menu">
+    <button data-add="sleep"><span class="ico night"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.3A8.5 8.5 0 0 1 9.7 3.5a.6.6 0 0 0-.8-.7A9.5 9.5 0 1 0 21.2 15.1a.6.6 0 0 0-.7-.8Z"/></svg></span>Sleep</button>
+    <button data-add="milk"><span class="ico milk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4M10.5 2v3M13.5 2v3M9 5h6l1.2 3.2V19a3 3 0 0 1-3 3h-2.4a3 3 0 0 1-3-3V8.2Z"/><path d="M8.5 12H12M8.5 16H12"/></svg></span>Liquids</button>
+    <button data-add="solid"><span class="ico solid"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18a9 8 0 0 1-18 0Z"/><path d="M15.5 3.5 12.5 10"/><path d="M8 9.5c0-1.4 1-1.6 1-3"/></svg></span>Solids</button>
+  </div>
+</div>
+
+<!-- Feed sheet -->
+<div class="sheet" id="feedSheet" role="dialog" aria-modal="true">
+  <div class="grab"></div>
+  <h3 id="feedTitle">Log feed</h3>
+  <p class="hint" id="feedHint">What did Sye have?</p>
+  <div class="seg wide" id="feedSeg">
+    <span class="thumb"></span>
+    <button data-t="milk" class="on">Liquids</button>
+    <button data-t="solid">Solids</button>
+  </div>
+  <div id="liqBox">
+    <div class="chips" id="drinkChips"></div>
+    <label class="field"><span>Amount · optional</span><div class="field-row"><input type="number" id="inMl" inputmode="numeric" min="0" max="1000" placeholder="e.g. 120"><em>ml</em></div></label>
+    <div class="chips" id="mlChips"></div>
+  </div>
+  <div id="solidBox">
+    <label class="field"><span id="foodLabel">What did Sye eat?</span><input type="text" id="inFood" placeholder="e.g. potato, broccoli" autocomplete="off" autocapitalize="sentences"></label>
+    <div class="chips" id="foodChips"></div>
+  </div>
+  <label class="field"><span>Time</span><input type="datetime-local" id="inFeedAt"></label>
+  <div class="preview" id="feedPreview"></div>
+  <button class="btn" id="feedSave">Save</button>
+  <button class="btn ghost" id="feedDel">Delete</button>
+</div>
+
 <!-- Settings sheet -->
 <div class="sheet" id="setSheet" role="dialog" aria-modal="true">
   <div class="grab"></div>
   <h3>Settings</h3>
-  <p class="hint">Everything stays on this phone. Nothing is uploaded anywhere.</p>
+  <p class="hint" id="setHint">Everything stays on this phone. Nothing is uploaded anywhere.</p>
   <label class="field"><span>Baby's name</span><input type="text" id="inName" maxlength="24" autocomplete="off"></label>
+  <div class="menu">
+    <button id="syncRow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 0 0-14.3-4.9M4 4v4h4M4 12a8 8 0 0 0 14.3 4.9M20 20v-4h-4"/></svg>
+      Sync with partner
+      <span class="right" id="syncRowState">Off</span>
+    </button>
+  </div>
   <div class="menu">
     <button id="exportBtn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 8l5-5 5 5M5 15v4a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-4"/></svg>
@@ -356,8 +478,15 @@
   <div class="foot" id="foot"></div>
 </div>
 
+<!-- Sync sheet (contents filled in by renderSyncSheet) -->
+<div class="sheet" id="syncSheet" role="dialog" aria-modal="true">
+  <div class="grab"></div>
+  <div id="syncBody"></div>
+</div>
+
 <div class="toast" id="toast"><span id="toastText"></span><button id="toastBtn" hidden>Undo</button></div>
 
+<script src="sync-config.js"></script>
 <script>
 (() => {
   'use strict';
@@ -369,18 +498,63 @@
 
   let state = load();
 
+  // Feeds: { id, at, type: 'milk' | 'solid', ml, what, updatedAt }.
+  // state.tomb / state.ftomb remember deleted sleep / feed ids so deletions reach the other phone.
+  // state.dirty holds changes not yet sent to the sync server.
   function load() {
+    const blank = { name: 'Sye', nameAt: 0, sleeps: [], feeds: [], active: null, activeAt: 0, tomb: {}, ftomb: {}, dirty: {}, family: null };
     try {
       const raw = localStorage.getItem(KEY);
       if (raw) {
         const s = JSON.parse(raw);
-        return { name: s.name || 'Sye', sleeps: Array.isArray(s.sleeps) ? s.sleeps : [], active: s.active || null };
+        const sleeps = (Array.isArray(s.sleeps) ? s.sleeps : []).map(x => ({ ...x, updatedAt: x.updatedAt || x.end }));
+        const feeds = (Array.isArray(s.feeds) ? s.feeds : []).map(x => ({ ...x, updatedAt: x.updatedAt || x.at }));
+        return { ...blank, ...s, name: s.name || 'Sye', sleeps, feeds, tomb: s.tomb || {}, ftomb: s.ftomb || {}, dirty: s.dirty || {} };
       }
     } catch (e) {}
-    return { name: 'Sye', sleeps: [], active: null };
+    return blank;
+  }
+  function saveLocal() {
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
   }
   function save() {
-    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    saveLocal();
+    Sync.push();
+  }
+
+  // ---------- Changes (all edits go through these so sync sees them) ----------
+  const COLLS = { sleeps: { prefix: 's:', tomb: 'tomb' }, feeds: { prefix: 'f:', tomb: 'ftomb' } };
+  function touch(coll, x) {
+    x.updatedAt = Date.now();
+    delete state[COLLS[coll].tomb][x.id];
+    state.dirty[COLLS[coll].prefix + x.id] = 1;
+  }
+  function addEntry(coll, x) {
+    state[coll].push(x);
+    touch(coll, x);
+    return x;
+  }
+  function removeEntry(coll, id) {
+    const i = state[coll].findIndex(x => x.id === id);
+    if (i < 0) return null;
+    const [gone] = state[coll].splice(i, 1);
+    state[COLLS[coll].tomb][id] = Date.now();
+    state.dirty[COLLS[coll].prefix + id] = 1;
+    return gone;
+  }
+  function restoreEntry(coll, x) {
+    if (state[coll].some(y => y.id === x.id)) return;
+    addEntry(coll, x);
+  }
+  function setActive(v) {
+    state.active = v;
+    state.activeAt = Date.now();
+    state.dirty.active = 1;
+  }
+  function setName(n) {
+    state.name = n;
+    state.nameAt = Date.now();
+    state.dirty.name = 1;
   }
   // Ask the browser to never evict our data.
   try { navigator.storage && navigator.storage.persist && navigator.storage.persist(); } catch (e) {}
@@ -507,19 +681,19 @@
     if (state.active) {
       const start = state.active;
       if (now - start < MIN) {
-        state.active = null; save(); renderAll();
+        setActive(null); save(); renderAll();
         toast('Too short to save');
         buzz(20);
         return;
       }
-      const s = { id: uid(), start, end: now };
-      state.sleeps.push(s); state.active = null; save();
+      const s = addEntry('sleeps', { id: uid(), start, end: now });
+      setActive(null); save();
       buzz([12, 60, 12]);
-      toast(`Slept ${fmtDur(now - start)}`, () => { state.sleeps = state.sleeps.filter(x => x.id !== s.id); state.active = start; save(); renderAll(); });
+      toast(`Slept ${fmtDur(now - start)}`, () => { removeEntry('sleeps', s.id); setActive(start); save(); renderAll(); });
     } else {
-      state.active = now; save();
+      setActive(now); save();
       buzz(15);
-      toast('Sweet dreams 🌙', () => { state.active = null; save(); renderAll(); });
+      toast('Sweet dreams 🌙', () => { setActive(null); save(); renderAll(); });
     }
     renderAll();
   });
@@ -632,18 +806,190 @@
 
   // segmented control
   const seg = $('rangeSeg');
-  function placeThumb() {
-    const on = seg.querySelector('.on'), th = seg.querySelector('.thumb');
+  function placeThumb(el = seg) {
+    const on = el.querySelector('.on'), th = el.querySelector('.thumb');
     th.style.left = on.offsetLeft + 'px'; th.style.width = on.offsetWidth + 'px';
   }
   seg.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
     seg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
     range = +b.dataset.n; selected = null; buzz(6);
-    placeThumb();
+    placeThumb(seg);
     const now = Date.now(); renderChart(now, totalsByDay(now));
   }));
 
-  // ---------- History ----------
+  // ---------- Feeds ----------
+  const ICON_BOTTLE = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2h4M10.5 2v3M13.5 2v3M9 5h6l1.2 3.2V19a3 3 0 0 1-3 3h-2.4a3 3 0 0 1-3-3V8.2Z"/><path d="M8.5 12H12M8.5 16H12"/></svg>';
+  const ICON_BOWL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18a9 8 0 0 1-18 0Z"/><path d="M15.5 3.5 12.5 10"/><path d="M8 9.5c0-1.4 1-1.6 1-3"/></svg>';
+  const DRINKS = ['Milk', 'Formula', 'Water'];
+  const ML_PICKS = [60, 90, 120, 150, 180, 210];
+  const FOOD_IDEAS = ['Potato', 'Broccoli', 'Carrot', 'Banana', 'Avocado', 'Sweet potato', 'Porridge', 'Apple', 'Pear', 'Yoghurt'];
+
+  // Checks a feed from a backup or the other phone; returns a clean copy or null.
+  function cleanFeed(f) {
+    if (!f || typeof f.at !== 'number' || (f.type !== 'milk' && f.type !== 'solid')) return null;
+    const ml = typeof f.ml === 'number' && f.ml > 0 && f.ml <= 2000 ? Math.round(f.ml) : null;
+    return { id: String(f.id || uid()), at: f.at, type: f.type, ml: f.type === 'milk' ? ml : null, what: typeof f.what === 'string' ? f.what.slice(0, 160) : '' };
+  }
+  function parseFoods(text) {
+    const out = [];
+    for (const raw of String(text || '').split(/[,\n;]+/)) {
+      const t = raw.trim().replace(/\s+/g, ' ').slice(0, 30);
+      if (!t) continue;
+      const nice = t[0].toUpperCase() + t.slice(1);
+      if (!out.some(x => x.toLowerCase() === nice.toLowerCase())) out.push(nice);
+    }
+    return out.slice(0, 8);
+  }
+  function feedsByDay() {
+    const map = {};
+    for (const f of state.feeds) {
+      const k = sleepDayOf(f.at);
+      const m = map[k] || (map[k] = { ml: 0, drinks: 0, meals: 0 });
+      if (f.type === 'milk') { m.drinks++; m.ml += f.ml || 0; } else m.meals++;
+    }
+    return map;
+  }
+  function fmtAgo(ms) { return ms < MIN ? 'just now' : `${fmtDur(ms)} ago`; }
+  function lastFeed(type) {
+    return state.feeds.reduce((a, f) => (f.type === type && (!a || f.at > a.at) ? f : a), null);
+  }
+  function feedLabel(f) {
+    if (f.type === 'milk') return f.what || 'Milk';
+    return f.what || 'Solids';
+  }
+
+  function renderQuick(now, ftotals) {
+    const t = ftotals[sleepDayOf(now)] || { ml: 0, drinks: 0, meals: 0 };
+    const lm = lastFeed('milk'), ls = lastFeed('solid');
+    const milkBits = [];
+    if (lm) milkBits.push(fmtAgo(now - lm.at));
+    if (t.ml) milkBits.push(`${t.ml} ml today`); else if (t.drinks) milkBits.push(`${t.drinks} today`);
+    $('qaMilk').textContent = milkBits.join(' · ') || 'Log a drink';
+    const solidBits = [];
+    if (t.meals) solidBits.push(`${t.meals} today`);
+    if (ls) solidBits.push(ls.what || fmtAgo(now - ls.at));
+    $('qaSolid').textContent = solidBits.join(' · ') || 'Log a meal';
+  }
+
+  // Feed sheet
+  let feedEditing = null, feedType = 'milk', drink = 'Milk';
+  const feedSeg = $('feedSeg');
+
+  function openFeed(type, id) {
+    const f = id ? state.feeds.find(x => x.id === id) : null;
+    feedEditing = f ? f.id : null;
+    const lm = lastFeed('milk');
+    if (f) {
+      $('feedTitle').textContent = f.type === 'milk' ? 'Liquids' : 'Solids';
+      $('feedHint').textContent = 'Change the details or delete this feed.';
+      drink = f.type === 'milk' ? (f.what || 'Milk') : (lm && lm.what) || 'Milk';
+      $('inMl').value = f.ml || '';
+      $('inFood').value = f.type === 'solid' ? f.what : '';
+      $('inFeedAt').value = toLocalInput(f.at);
+      $('feedDel').style.display = '';
+    } else {
+      $('feedTitle').textContent = 'Log feed';
+      $('feedHint').textContent = `What did ${state.name} have?`;
+      drink = (lm && lm.what) || 'Milk';
+      $('inMl').value = lm && lm.ml ? lm.ml : '';
+      $('inFood').value = '';
+      $('inFeedAt').value = toLocalInput(Date.now());
+      $('feedDel').style.display = 'none';
+    }
+    $('foodLabel').textContent = `What did ${state.name} eat?`;
+    setFeedType(f ? f.type : type);
+    show($('feedSheet'));
+    requestAnimationFrame(() => placeThumb(feedSeg));
+  }
+  function setFeedType(t) {
+    feedType = t;
+    feedSeg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.t === t));
+    placeThumb(feedSeg);
+    $('liqBox').style.display = t === 'milk' ? '' : 'none';
+    $('solidBox').style.display = t === 'solid' ? '' : 'none';
+    renderFeedChips();
+    updateFeedPreview();
+  }
+  feedSeg.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { buzz(6); setFeedType(b.dataset.t); }));
+
+  function foodIdeas() {
+    const seen = new Set(), out = [];
+    const add = (x) => { const k = x.toLowerCase(); if (!seen.has(k)) { seen.add(k); out.push(x); } };
+    state.feeds.filter(f => f.type === 'solid').sort((a, b) => b.at - a.at).forEach(f => parseFoods(f.what).forEach(add));
+    FOOD_IDEAS.forEach(add);
+    return out.slice(0, 12);
+  }
+  function renderFeedChips() {
+    const ml = +$('inMl').value;
+    $('drinkChips').innerHTML = DRINKS.map(d => `<button class="chip${d === drink ? ' on' : ''}" data-drink="${d}">${d}</button>`).join('');
+    $('mlChips').innerHTML = ML_PICKS.map(n => `<button class="chip${n === ml ? ' on' : ''}" data-ml="${n}">${n} ml</button>`).join('');
+    const chosen = parseFoods($('inFood').value).map(x => x.toLowerCase());
+    $('foodChips').innerHTML = foodIdeas().map(x => `<button class="chip${chosen.includes(x.toLowerCase()) ? ' on' : ''}" data-food="${escapeHtml(x)}">${escapeHtml(x)}</button>`).join('');
+  }
+  $('drinkChips').addEventListener('click', e => {
+    const b = e.target.closest('[data-drink]'); if (!b) return;
+    drink = b.dataset.drink; buzz(6); renderFeedChips(); updateFeedPreview();
+  });
+  $('mlChips').addEventListener('click', e => {
+    const b = e.target.closest('[data-ml]'); if (!b) return;
+    $('inMl').value = +$('inMl').value === +b.dataset.ml ? '' : b.dataset.ml;
+    buzz(6); renderFeedChips(); updateFeedPreview();
+  });
+  $('foodChips').addEventListener('click', e => {
+    const b = e.target.closest('[data-food]'); if (!b) return;
+    const list = parseFoods($('inFood').value), k = b.dataset.food.toLowerCase();
+    const i = list.findIndex(x => x.toLowerCase() === k);
+    if (i >= 0) list.splice(i, 1); else list.push(b.dataset.food);
+    $('inFood').value = list.join(', ');
+    buzz(6); renderFeedChips(); updateFeedPreview();
+  });
+  $('inMl').addEventListener('input', () => { renderFeedChips(); updateFeedPreview(); });
+  $('inFood').addEventListener('input', () => { renderFeedChips(); updateFeedPreview(); });
+  $('inFeedAt').addEventListener('input', updateFeedPreview);
+
+  function readFeed() {
+    const at = fromLocalInput($('inFeedAt').value);
+    if (feedType === 'milk') {
+      const n = Math.round(+$('inMl').value);
+      return { type: 'milk', at, ml: $('inMl').value === '' ? null : n, what: drink };
+    }
+    return { type: 'solid', at, ml: null, what: parseFoods($('inFood').value).join(', ') };
+  }
+  function updateFeedPreview() {
+    const f = readFeed(), p = $('feedPreview');
+    let ok = true, msg;
+    if (isNaN(f.at)) { ok = false; msg = '<b>Pick a time</b>'; }
+    else if (f.at > Date.now() + MIN) { ok = false; msg = '<b>That’s in the future</b>'; }
+    else if (f.type === 'milk' && f.ml != null && !(f.ml > 0 && f.ml <= 2000)) { ok = false; msg = '<b>Check the amount</b>'; }
+    else if (f.type === 'milk') msg = f.ml ? `<b>${f.ml} ml</b> of ${f.what.toLowerCase()}` : `<b>${f.what}</b> · no amount`;
+    else msg = f.what ? `<b>${escapeHtml(f.what)}</b>` : 'Type a food or tap one above';
+    p.innerHTML = msg;
+    p.classList.toggle('bad', !ok);
+    $('feedSave').disabled = !ok;
+  }
+
+  $('feedSave').addEventListener('click', () => {
+    const f = readFeed();
+    if (feedEditing) {
+      const x = state.feeds.find(y => y.id === feedEditing);
+      if (x) { Object.assign(x, f); touch('feeds', x); }
+      save(); hide(); buzz(10); renderAll();
+      return toast('Saved');
+    }
+    const x = addEntry('feeds', { id: uid(), ...f });
+    save(); hide(); buzz([12, 60, 12]); renderAll();
+    const what = f.type === 'milk' ? (f.ml ? `${f.ml} ml ${f.what.toLowerCase()}` : f.what.toLowerCase()) : (f.what || 'solids');
+    toast(`Logged ${what}`.slice(0, 40), () => { removeEntry('feeds', x.id); save(); renderAll(); });
+  });
+  $('feedDel').addEventListener('click', () => {
+    const removed = removeEntry('feeds', feedEditing);
+    if (!removed) return hide();
+    save(); hide(); buzz(20); renderAll();
+    toast('Deleted', () => { restoreEntry('feeds', removed); save(); renderAll(); });
+  });
+  document.querySelectorAll('.qa[data-feed]').forEach(b => b.addEventListener('click', () => { buzz(8); openFeed(b.dataset.feed); }));
+
+  // ---------- Timeline ----------
   let showDays = 7;
   function relDay(k, now) {
     const today = sleepDayOf(now);
@@ -652,38 +998,64 @@
     const d = keyToDate(k);
     return `${WDL[d.getDay()].slice(0, 3)}, ${d.getDate()} ${MON[d.getMonth()]}`;
   }
-  function renderHistory(now, totals) {
-    const list = allSleeps(now).sort((a, b) => b.start - a.start);
+  function renderHistory(now, totals, ftotals) {
+    const items = [
+      ...allSleeps(now).map(s => ({ kind: 'sleep', t: s.start, x: s })),
+      ...state.feeds.map(f => ({ kind: 'feed', t: f.at, x: f }))
+    ].sort((a, b) => b.t - a.t);
     const el = $('history');
-    if (!list.length) {
-      el.innerHTML = `<div class="empty-state"><div class="moon">🌙</div>No sleep logged yet.<br>Tap <b>Start sleep</b> above, or <b>Add</b> one you missed.</div>`;
+    if (!items.length) {
+      el.innerHTML = `<div class="empty-state"><div class="moon">🌙</div>Nothing logged yet.<br>Tap <b>Start sleep</b>, <b>Liquids</b> or <b>Solids</b> above,<br>or <b>Add</b> something you missed.</div>`;
       return;
     }
+    // time since the previous drink, shown under each drink
+    const gap = {};
+    state.feeds.filter(f => f.type === 'milk').sort((a, b) => a.at - b.at)
+      .forEach((f, i, a) => { if (i && f.at - a[i - 1].at < 24 * HOUR) gap[f.id] = f.at - a[i - 1].at; });
+
     const groups = new Map();
-    for (const s of list) {
-      const k = sleepDayOf(s.start);
+    for (const it of items) {
+      const k = sleepDayOf(it.t);
       if (!groups.has(k)) groups.set(k, []);
-      groups.get(k).push(s);
+      groups.get(k).push(it);
     }
     let html = '', n = 0;
-    for (const [k, items] of groups) {
+    for (const [k, list] of groups) {
       if (n++ >= showDays) break;
-      const t = totals[k] || { night: 0, nap: 0 };
-      html += `<div class="day"><div class="day-h"><span>${relDay(k, now)}</span><span>${fmtDur(t.night + t.nap)}</span></div>`;
-      for (const s of items) {
-        const night = isNight(s.start, s.end);
-        html += `<button class="row" data-id="${s.id}">
-          <div class="ico ${night ? 'night' : 'nap'}">${night ? ICON_MOON : ICON_SUN}</div>
-          <div class="mid"><div class="t1">${night ? 'Night sleep' : 'Nap'}</div>
-          <div class="t2">${fmtTime(s.start)} – ${s.live ? 'now' : fmtTime(s.end)}</div></div>
-          <div class="dur${s.live ? ' live' : ''}">${fmtDur(s.end - s.start)}</div>
-        </button>`;
+      const t = totals[k] || { night: 0, nap: 0 }, ft = ftotals[k] || { ml: 0, meals: 0 };
+      const sum = [];
+      if (t.night + t.nap) sum.push(`${fmtDur(t.night + t.nap)} sleep`);
+      if (ft.ml) sum.push(`${ft.ml} ml`);
+      if (ft.meals) sum.push(`${ft.meals} meal${ft.meals === 1 ? '' : 's'}`);
+      html += `<div class="day"><div class="day-h"><span>${relDay(k, now)}</span><span>${sum.join(' · ')}</span></div><div class="tl">`;
+      for (const it of list) {
+        const x = it.x;
+        if (it.kind === 'sleep') {
+          const night = isNight(x.start, x.end);
+          html += `<button class="tl-item${x.live ? ' live' : ''}" data-sleep="${x.id}">
+            <div class="tl-time">${fmtTime(x.start)}</div>
+            <div class="ico ${night ? 'night' : 'nap'}">${night ? ICON_MOON : ICON_SUN}</div>
+            <div class="mid"><div class="t1">${night ? 'Night sleep' : 'Nap'}</div>
+            <div class="t2">${x.live ? 'Sleeping now' : `Woke at ${fmtTime(x.end)}`}</div></div>
+            <div class="dur${x.live ? ' live' : ''}">${fmtDur(x.end - x.start)}</div>
+          </button>`;
+        } else {
+          const milk = x.type === 'milk';
+          const t2 = milk ? (gap[x.id] ? `${fmtDur(gap[x.id])} after last drink` : 'Drink') : 'Solids';
+          html += `<button class="tl-item" data-feed-id="${x.id}">
+            <div class="tl-time">${fmtTime(x.at)}</div>
+            <div class="ico ${milk ? 'milk' : 'solid'}">${milk ? ICON_BOTTLE : ICON_BOWL}</div>
+            <div class="mid"><div class="t1">${escapeHtml(feedLabel(x))}</div><div class="t2">${t2}</div></div>
+            <div class="dur">${milk && x.ml ? `${x.ml} ml` : ''}</div>
+          </button>`;
+        }
       }
-      html += '</div>';
+      html += '</div></div>';
     }
     if (groups.size > showDays) html += `<button class="more" id="moreBtn">Show more</button>`;
     el.innerHTML = html;
-    el.querySelectorAll('.row').forEach(r => r.addEventListener('click', () => openEdit(r.dataset.id)));
+    el.querySelectorAll('[data-sleep]').forEach(r => r.addEventListener('click', () => openEdit(r.dataset.sleep)));
+    el.querySelectorAll('[data-feed-id]').forEach(r => r.addEventListener('click', () => openFeed(null, r.dataset.feedId)));
     const more = $('moreBtn');
     if (more) more.onclick = () => { showDays += 14; renderAll(); };
   }
@@ -693,8 +1065,8 @@
     const h = new Date(now).getHours();
     $('hello').textContent = h < 5 ? 'Late night with' : h < 12 ? 'Good morning,' : h < 18 ? 'Good afternoon,' : 'Good evening,';
     $('babyName').textContent = state.name;
-    $('avatar').textContent = (state.name.trim()[0] || 'S').toUpperCase();
-    document.title = `${state.name} · Sleep`;
+    $('avatarLetter').textContent = (state.name.trim()[0] || 'S').toUpperCase();
+    document.title = `${state.name} · Sleep & feeds`;
   }
 
   function renderAll() {
@@ -704,7 +1076,10 @@
     renderHero(now);
     renderTiles(now, totals);
     renderChart(now, totals);
-    renderHistory(now, totals);
+    const ftotals = feedsByDay();
+    renderQuick(now, ftotals);
+    renderHistory(now, totals, ftotals);
+    renderSyncUi();
   }
 
   // ---------- Sheets ----------
@@ -751,6 +1126,7 @@
     editing = id || null;
     const now = Date.now();
     const s = id && id !== 'active' ? state.sleeps.find(x => x.id === id) : null;
+    if (id === 'active' && !state.active) return;
     if (id === 'active') {
       $('editTitle').textContent = 'Adjust start';
       $('editHint').textContent = 'When did the current sleep start?';
@@ -801,12 +1177,12 @@
   $('saveBtn').addEventListener('click', () => {
     const { s, e } = readEdit();
     if (editing === 'active') {
-      state.active = s;
+      if (state.active) setActive(s);
     } else if (editing) {
       const x = state.sleeps.find(x => x.id === editing);
-      if (x) { x.start = s; x.end = Math.min(e, Date.now()); }
+      if (x) { x.start = s; x.end = Math.min(e, Date.now()); touch('sleeps', x); }
     } else {
-      state.sleeps.push({ id: uid(), start: s, end: Math.min(e, Date.now()) });
+      addEntry('sleeps', { id: uid(), start: s, end: Math.min(e, Date.now()) });
     }
     save(); hide(); buzz(10); renderAll();
     toast('Saved');
@@ -815,27 +1191,34 @@
   $('delBtn').addEventListener('click', () => {
     if (editing === 'active') {
       const prev = state.active;
-      state.active = null; save(); hide(); renderAll();
-      toast('Sleep cancelled', () => { state.active = prev; save(); renderAll(); });
+      setActive(null); save(); hide(); renderAll();
+      toast('Sleep cancelled', () => { setActive(prev); save(); renderAll(); });
       return;
     }
-    const idx = state.sleeps.findIndex(x => x.id === editing);
-    if (idx < 0) return hide();
-    const [removed] = state.sleeps.splice(idx, 1);
+    const removed = removeEntry('sleeps', editing);
+    if (!removed) return hide();
     save(); hide(); buzz(20); renderAll();
-    toast('Deleted', () => { state.sleeps.push(removed); save(); renderAll(); });
+    toast('Deleted', () => { restoreEntry('sleeps', removed); save(); renderAll(); });
   });
 
-  $('addBtn').addEventListener('click', () => openEdit(null));
+  $('addBtn').addEventListener('click', () => show($('addSheet')));
+  $('addSheet').querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => {
+    $('addSheet').classList.remove('open');
+    b.dataset.add === 'sleep' ? openEdit(null) : openFeed(b.dataset.add);
+  }));
 
   // Settings
   $('avatar').addEventListener('click', () => {
     $('inName').value = state.name;
-    $('foot').textContent = `${state.sleeps.length} sleeps logged`;
+    $('foot').textContent = `${state.sleeps.length} sleeps · ${state.feeds.length} feeds logged`;
+    $('setHint').textContent = state.family
+      ? 'Sync is on: this log is shared with your partner’s phone.'
+      : 'Everything stays on this phone. Nothing is uploaded anywhere.';
+    renderSyncUi();
     show($('setSheet'));
   });
   $('inName').addEventListener('input', () => {
-    state.name = $('inName').value.trim() || 'Sye';
+    setName($('inName').value.trim() || 'Sye');
     save(); renderHeader(Date.now());
   });
   $('setDone').addEventListener('click', hide);
@@ -863,25 +1246,39 @@
     if (!f) return;
     try {
       const d = JSON.parse(await f.text());
-      if (!Array.isArray(d.sleeps)) throw new Error('bad');
-      const clean = d.sleeps
+      if (!Array.isArray(d.sleeps) && !Array.isArray(d.feeds)) throw new Error('bad');
+      const clean = (d.sleeps || [])
         .filter(s => s && typeof s.start === 'number' && typeof s.end === 'number' && s.end > s.start)
         .map(s => ({ id: String(s.id || uid()), start: s.start, end: s.end }));
       // merge, skipping exact duplicates
       const seen = new Set(state.sleeps.map(s => s.start + ':' + s.end));
       let added = 0;
-      for (const s of clean) if (!seen.has(s.start + ':' + s.end)) { state.sleeps.push(s); added++; }
-      if (d.name && state.name === 'Sye') state.name = String(d.name).slice(0, 24);
+      for (const s of clean) {
+        if (seen.has(s.start + ':' + s.end) || state.sleeps.some(x => x.id === s.id)) continue;
+        addEntry('sleeps', s); added++;
+      }
+      const feeds = (d.feeds || []).map(cleanFeed).filter(Boolean);
+      const seenF = new Set(state.feeds.map(f => f.at + ':' + f.type));
+      for (const f of feeds) {
+        if (seenF.has(f.at + ':' + f.type) || state.feeds.some(x => x.id === f.id)) continue;
+        addEntry('feeds', f); added++;
+      }
+      if (d.name && state.name === 'Sye') setName(String(d.name).slice(0, 24));
       save(); hide(); renderAll();
-      toast(`Restored ${added} sleep${added === 1 ? '' : 's'}`);
+      toast(`Restored ${added} entr${added === 1 ? 'y' : 'ies'}`);
     } catch (e) {
       toast('That file isn’t a backup');
     }
   });
 
   $('wipeBtn').addEventListener('click', () => {
-    if (!confirm('Delete all sleep data on this phone? This can’t be undone (unless you have a backup).')) return;
-    state = { name: state.name, sleeps: [], active: null };
+    const msg = state.family
+      ? 'Delete all sleeps and feeds? Sync is on, so this also deletes them on your partner’s phone. This can’t be undone (unless you have a backup).'
+      : 'Delete all sleeps and feeds on this phone? This can’t be undone (unless you have a backup).';
+    if (!confirm(msg)) return;
+    for (const s of state.sleeps.slice()) removeEntry('sleeps', s.id);
+    for (const f of state.feeds.slice()) removeEntry('feeds', f.id);
+    if (state.active) setActive(null);
     save(); hide(); renderAll();
     toast('All data deleted');
   });
@@ -900,10 +1297,285 @@
 
   function escapeHtml(s) { return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 
+  // ---------- Sync ----------
+  // Each phone keeps its own copy and sends changes to a shared Firebase
+  // database. For every entry the most recent change wins.
+  const Sync = (() => {
+    const cfg = window.SYNC_CONFIG;
+    let backend = null, unsub = null, status = 'off', pushing = false, again = false;
+    const configured = () => !!window.__TEST_BACKEND__ || !!(cfg && cfg.projectId);
+
+    async function getBackend() {
+      if (backend) return backend;
+      if (window.__TEST_BACKEND__) return (backend = window.__TEST_BACKEND__);
+      const base = 'https://www.gstatic.com/firebasejs/10.12.2/';
+      const [A, F] = await Promise.all([import(base + 'firebase-app.js'), import(base + 'firebase-firestore.js')]);
+      const db = F.getFirestore(A.initializeApp(cfg));
+      backend = {
+        listen(fid, onDocs, onState) {
+          const subs = ['sleeps', 'feeds', 'meta'].map(coll => F.onSnapshot(
+            F.collection(db, 'families', fid, coll),
+            { includeMetadataChanges: true },
+            snap => {
+              onDocs(coll, snap.docChanges().map(c => ({ id: c.doc.id, data: c.doc.data() })));
+              onState(snap.metadata.fromCache ? 'wait' : 'live');
+            },
+            err => onState('error', err)
+          ));
+          return () => subs.forEach(u => u());
+        },
+        put(fid, coll, id, data) { return F.setDoc(F.doc(db, 'families', fid, coll, id), data); }
+      };
+      return backend;
+    }
+
+    function setStatus(s) { status = s; renderSyncUi(); }
+
+    async function start() {
+      if (!state.family || !configured() || unsub) return;
+      setStatus('wait');
+      let b;
+      try { b = await getBackend(); } catch (e) { console.warn('sync: could not load', e); return; } // offline; retried on 'online'
+      if (unsub || !state.family) return;
+      const fid = state.family;
+      unsub = b.listen(fid,
+        (coll, docs) => { if (fid === state.family) applyRemote(coll, docs); },
+        (s, err) => { if (err) console.warn('sync', err); setStatus(s); if (s === 'live') push(); });
+      push();
+    }
+    function stop() {
+      if (unsub) unsub();
+      unsub = null;
+      setStatus('off');
+    }
+
+    // What to send for one pending change.
+    function docFor(key) {
+      if (key === 'active') return { coll: 'meta', id: 'active', data: { value: state.active || null, updatedAt: state.activeAt || 0 } };
+      if (key === 'name') return { coll: 'meta', id: 'name', data: { value: state.name, updatedAt: state.nameAt || 0 } };
+      const coll = key.startsWith('f:') ? 'feeds' : 'sleeps';
+      const id = key.slice(2), x = state[coll].find(y => y.id === id), gone = state[COLLS[coll].tomb][id];
+      if (x && coll === 'sleeps') return { coll, id, data: { start: x.start, end: x.end, updatedAt: x.updatedAt, deleted: false } };
+      if (x) return { coll, id, data: { at: x.at, type: x.type, ml: x.ml ?? null, what: x.what || '', updatedAt: x.updatedAt, deleted: false } };
+      if (gone) return { coll, id, data: { deleted: true, updatedAt: gone } };
+      return null;
+    }
+
+    async function push() {
+      if (!state.family || !backend || !unsub) return;
+      if (pushing) { again = true; return; }
+      pushing = true;
+      try {
+        do {
+          again = false;
+          const fid = state.family;
+          const jobs = Object.keys(state.dirty).map(key => {
+            const d = docFor(key);
+            if (!d) { delete state.dirty[key]; return null; }
+            return backend.put(fid, d.coll, d.id, d.data).then(() => {
+              // Only clear it if nothing changed while it was being sent.
+              const now = docFor(key);
+              if (fid === state.family && now && now.data.updatedAt === d.data.updatedAt) delete state.dirty[key];
+            });
+          }).filter(Boolean);
+          if (!jobs.length) break;
+          await Promise.all(jobs);
+          saveLocal();
+        } while (again);
+      } catch (e) {
+        console.warn('sync: send failed', e);
+        setStatus('error');
+      } finally {
+        pushing = false;
+      }
+    }
+
+    function applyRemote(coll, docs) {
+      let changed = false;
+      for (const { id, data } of docs) {
+        if (!data || typeof data.updatedAt !== 'number') continue;
+        if (COLLS[coll]) {
+          const list = state[coll], tomb = state[COLLS[coll].tomb];
+          const i = list.findIndex(x => x.id === id);
+          const localAt = i >= 0 ? list[i].updatedAt : (tomb[id] || 0);
+          if (!(data.updatedAt > localAt)) continue;
+          if (data.deleted) {
+            if (i >= 0) list.splice(i, 1);
+            tomb[id] = data.updatedAt;
+          } else {
+            let x;
+            if (coll === 'sleeps') {
+              if (typeof data.start !== 'number' || typeof data.end !== 'number') continue;
+              x = { id, start: data.start, end: data.end };
+            } else {
+              x = cleanFeed({ ...data, id });
+              if (!x) continue;
+            }
+            x.updatedAt = data.updatedAt;
+            if (i >= 0) list[i] = x; else list.push(x);
+            delete tomb[id];
+          }
+          delete state.dirty[COLLS[coll].prefix + id];
+          changed = true;
+        } else if (id === 'active' && data.updatedAt > (state.activeAt || 0)) {
+          state.active = typeof data.value === 'number' ? data.value : null;
+          state.activeAt = data.updatedAt;
+          delete state.dirty.active;
+          changed = true;
+        } else if (id === 'name' && typeof data.value === 'string' && data.updatedAt > (state.nameAt || 0)) {
+          state.name = data.value.slice(0, 24) || 'Sye';
+          state.nameAt = data.updatedAt;
+          delete state.dirty.name;
+          changed = true;
+        }
+      }
+      if (changed) { saveLocal(); renderAll(); }
+    }
+
+    // Queue everything on this phone so it gets shared when sync starts.
+    function shareAll() {
+      for (const coll in COLLS) {
+        const { prefix, tomb } = COLLS[coll];
+        for (const x of state[coll]) state.dirty[prefix + x.id] = 1;
+        for (const id in state[tomb]) state.dirty[prefix + id] = 1;
+      }
+      if (state.activeAt) state.dirty.active = 1;
+      if (state.nameAt) state.dirty.name = 1;
+    }
+    function begin(code) {
+      stop();
+      state.family = code;
+      shareAll();
+      saveLocal();
+      start();
+    }
+    function leave() {
+      stop();
+      state.family = null;
+      state.dirty = {};
+      saveLocal();
+    }
+
+    window.addEventListener('online', () => { unsub ? push() : start(); });
+    window.addEventListener('offline', () => { if (unsub) setStatus('wait'); });
+
+    return { configured, start, stop, push, begin, leave, status: () => status };
+  })();
+
+  // Family codes: 20 characters (about 100 bits), shown as XXXXX-XXXXX-XXXXX-XXXXX.
+  const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  function newCode() {
+    const r = crypto.getRandomValues(new Uint8Array(20));
+    return Array.from(r, b => CODE_CHARS[b % CODE_CHARS.length]).join('');
+  }
+  const fmtCode = (c) => c.match(/.{1,5}/g).join('-');
+  function parseCode(text) {
+    const up = String(text || '').toUpperCase();
+    const m = up.match(/[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}-[A-Z0-9]{5}/);
+    const raw = (m ? m[0] : up).replace(/[^A-Z0-9]/g, '');
+    return raw.length === 20 && [...raw].every(ch => CODE_CHARS.includes(ch)) ? raw : null;
+  }
+
+  const SYNC_TEXT = { off: 'Off', wait: 'Connecting…', live: 'On', error: 'Problem' };
+  const SYNC_CLASS = { off: '', wait: 's-wait', live: 's-live', error: 's-error' };
+  function syncStatusLine() {
+    const s = Sync.status();
+    if (s === 'live') return 'Synced · up to date';
+    if (s === 'error') return 'Can’t sync right now. Check the setup steps, then reopen the app.';
+    return navigator.onLine === false ? 'Offline · changes will sync when you’re back online' : 'Connecting…';
+  }
+  function renderSyncUi() {
+    const s = Sync.status();
+    $('syncBadge').className = 'badge ' + SYNC_CLASS[s];
+    $('syncRowState').innerHTML = state.family ? `<i class="sdot ${SYNC_CLASS[s]}"></i>${SYNC_TEXT[s]}` : (Sync.configured() ? 'Off' : 'Set up');
+    const line = $('syncLine');
+    if (line) line.innerHTML = `<i class="sdot ${SYNC_CLASS[s]}"></i>${syncStatusLine()}`;
+  }
+
+  const SETUP_URL = 'https://github.com/SlavVitanov/Sleep-tracker#sync-between-two-phones';
+  function renderSyncSheet(view) {
+    const body = $('syncBody');
+    if (!Sync.configured()) {
+      body.innerHTML = `<h3>Sync with partner</h3>
+        <p class="hint">See the same log on both phones. This needs a one-time setup of about 10 minutes, done by whoever looks after the app.</p>
+        <a class="btn" style="display:grid;place-items:center;text-decoration:none" href="${SETUP_URL}" target="_blank" rel="noopener">Open the setup guide</a>
+        <button class="btn soft" data-act="close">Not now</button>`;
+    } else if (state.family) {
+      body.innerHTML = `<h3>Sync is on</h3>
+        <div class="sync-status" id="syncLine"></div>
+        <div class="code-card"><span>Family code</span><b>${fmtCode(state.family)}</b></div>
+        <p class="hint">On your partner’s phone, open the app, tap the round initial → <b>Sync with partner</b> → <b>I have a code</b>, and paste this code. Keep it private: anyone with it can see and change the log.</p>
+        <button class="btn" data-act="share">Send code to partner</button>
+        <button class="btn soft" data-act="close">Done</button>
+        <button class="btn ghost" data-act="leave">Stop syncing on this phone</button>`;
+    } else if (view === 'join') {
+      body.innerHTML = `<h3>Join your partner</h3>
+        <p class="hint">On the phone that already syncs, tap the round initial → <b>Sync with partner</b> → <b>Send code to partner</b>. Then paste the code here.</p>
+        <label class="field"><span>Family code</span><input class="code" id="inCode" placeholder="XXXXX-XXXXX-XXXXX-XXXXX" autocomplete="off" autocapitalize="characters" spellcheck="false"></label>
+        <div class="preview" id="codeHint"></div>
+        <button class="btn" data-act="join" id="joinBtn" disabled>Join</button>
+        <button class="btn soft" data-act="back">Back</button>`;
+      const inp = $('inCode');
+      inp.addEventListener('input', () => {
+        const ok = !!parseCode(inp.value);
+        $('joinBtn').disabled = !ok;
+        $('codeHint').innerHTML = inp.value.trim() && !ok ? 'That doesn’t look like a family code yet' : '';
+      });
+    } else {
+      body.innerHTML = `<h3>Sync with partner</h3>
+        <p class="hint">Log on either phone and see it on both, live. Everything already on this phone is kept and shared.</p>
+        <button class="btn" data-act="create">Start syncing</button>
+        <button class="btn soft" data-act="toJoin">I have a code from my partner</button>`;
+    }
+    body.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => syncAction(b.dataset.act)));
+    renderSyncUi();
+  }
+
+  async function syncAction(act) {
+    buzz(8);
+    if (act === 'close') return hide();
+    if (act === 'toJoin') return renderSyncSheet('join');
+    if (act === 'back') return renderSyncSheet();
+    if (act === 'create') {
+      Sync.begin(newCode());
+      renderSyncSheet();
+      return toast('Sync is on');
+    }
+    if (act === 'join') {
+      const code = parseCode($('inCode').value);
+      if (!code) return;
+      Sync.begin(code);
+      renderSyncSheet();
+      return toast('Joined · syncing now');
+    }
+    if (act === 'leave') {
+      if (!confirm('Stop syncing on this phone? The log stays on this phone, but new changes won’t be shared.')) return;
+      Sync.leave();
+      renderSyncSheet();
+      return toast('Sync turned off');
+    }
+    if (act === 'share') {
+      const link = location.origin + location.pathname;
+      const text = `Join ${state.name}'s sleep tracker:\n1. Open ${link} and add it to your home screen\n2. Open it, tap the round initial → Sync with partner → I have a code\n3. Paste this code: ${fmtCode(state.family)}`;
+      try {
+        if (navigator.share) { await navigator.share({ text }); return; }
+      } catch (e) { if (e && e.name === 'AbortError') return; }
+      try { await navigator.clipboard.writeText(text); toast('Code copied'); }
+      catch (e) { toast('Copy the code above'); }
+    }
+  }
+
+  $('syncRow').addEventListener('click', () => {
+    if (openSheet) openSheet.classList.remove('open');
+    renderSyncSheet();
+    show($('syncSheet'));
+  });
+
   // ---------- Tick ----------
   renderAll();
-  requestAnimationFrame(placeThumb);
-  window.addEventListener('resize', placeThumb);
+  Sync.start();
+  requestAnimationFrame(() => placeThumb(seg));
+  window.addEventListener('resize', () => placeThumb(seg));
   let lastMinute = Math.floor(Date.now() / MIN);
   setInterval(() => {
     const now = Date.now();
@@ -911,7 +1583,7 @@
     const m = Math.floor(now / MIN);
     if (m !== lastMinute) { lastMinute = m; renderAll(); }
   }, 1000);
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) { state = load(); renderAll(); } });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { state = load(); renderAll(); state.family ? Sync.start() : Sync.stop(); } });
 
   // ---------- Offline ----------
   if ('serviceWorker' in navigator && location.protocol === 'https:') {

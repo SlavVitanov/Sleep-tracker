@@ -1,0 +1,19 @@
+rules_version = '2';
+
+// Copy everything in this file into Firebase → Firestore Database → Rules.
+//
+// Each family's log lives under /families/<family code>/. The code is a long
+// random string that only your phones know, and nobody can list the families,
+// so the code works like a password.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /families/{family}/{coll}/{id} {
+      allow get, list: if family.size() == 20;
+      allow create, update: if family.size() == 20
+        && coll in ['sleeps', 'feeds', 'meta']
+        && request.resource.data.keys().hasOnly(['start', 'end', 'at', 'type', 'ml', 'what', 'updatedAt', 'deleted', 'value'])
+        && request.resource.data.updatedAt is number;
+      allow delete: if false;
+    }
+  }
+}

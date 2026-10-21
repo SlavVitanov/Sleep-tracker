@@ -1,12 +1,16 @@
-# Sye's Sleep Tracker 🌙
+# Sye's Sleep & Feed Tracker 🌙🍼
 
-A small sleep tracker that lives on your phone's home screen and works like a normal app.
+A small tracker for sleeps and feeds that lives on your phone's home screen and works like a normal app.
 
 - **One big button**: tap *Start sleep* when the baby falls asleep and *Wake up* when they wake. The timer keeps going even if you close the app.
-- **Today at a glance**: total sleep, number of naps and the longest stretch.
+- **Feeds**: tap **Liquids** or **Solids** under the timer.
+  - **Liquids**: choose Milk, Formula or Water and optionally type the amount in ml, or tap a quick size. It remembers your last amount.
+  - **Solids**: type what was eaten (e.g. *potato, broccoli*) or tap suggestions. Suggestions learn from foods you've logged before.
+- **Today at a glance**: total sleep, number of naps and the longest stretch, plus time since the last drink, millilitres drunk today and the last meal.
 - **Bar chart**: daily sleep for the last 7, 14 or 30 days, split into night (purple) and naps (orange). Tap a bar to see that day.
-- **History**: tap any entry to fix the times or delete it. Use **+ Add** for sleeps you forgot to log.
-- **Private**: all data stays on your phone. Nothing is uploaded.
+- **Timeline**: sleeps and feeds together, newest first, with each day's totals and the time between drinks. Tap any entry to change or delete it. Use **+ Add** for anything you forgot to log.
+- **Private**: all data stays on your phone, unless you turn on sync with your partner (optional, see below).
+- **Sync with your partner** (optional): log on either phone and see it on both.
 - **Works offline** once it has been opened once.
 
 A "day" runs from 7am to 7am, so a night's sleep counts toward the evening it started. Sleep between 7pm and 7am counts as night, and anything else counts as a nap.
@@ -51,8 +55,72 @@ Open it from the new home-screen icon from now on. It opens full screen like a r
 - **Change the name**: tap the round initial in the top-right corner.
 - **Back up your data** now and then: tap the round initial, then **Save a backup**, and keep the file somewhere safe (Files, Google Drive, email it to yourself). If you get a new phone, use **Restore from backup**.
 - **Always use the home-screen icon.** Data saved in the home-screen app and data saved in a normal browser tab are kept separately.
-- **Two phones?** Each phone keeps its own log. You can move entries between phones with backup and restore.
+- **Two phones?** Without sync, each phone keeps its own log. To share one log, set up [sync](#sync-between-two-phones).
 - **Updates**: if the app changes here, it updates itself the next time you open it with internet.
+
+---
+
+## Sync between two phones
+
+Sync lets you and your partner log on either phone and see the same log on both, live. It uses **Firebase**, Google's free app database. You set it up once, which takes about 10 minutes. A computer makes it easier, but a phone works too.
+
+**Cost:** free. Firebase's free "Spark" plan doesn't need a card, and a baby log uses a tiny fraction of its limits.
+
+**Privacy:** the log is stored in your own Firebase project. Your two phones share a random 20-character **family code**, which works like a password. Anyone who has the code can see and change the log, so keep it between the two of you.
+
+### Part 1: Create the database (once)
+
+1. Go to **[console.firebase.google.com](https://console.firebase.google.com)** and sign in with a Google account.
+2. Tap **Create a project** (it may say **Get started with a Firebase project**).
+   - Name it `sleep-tracker` and tap **Continue**.
+   - If it asks about **Gemini** or **Google Analytics**, turn them **off**. You don't need them.
+   - Tap **Create project**, wait a few seconds, then tap **Continue**.
+3. In the left menu, open **Build** (or **Databases & Storage**) → **Firestore Database**, and tap **Create database**.
+   - If it asks for an edition, pick **Standard**.
+   - **Location**: choose one near you (for example `eur3 (europe)` in Europe, or `nam5 (us)` in the US). Tap **Next**.
+   - Choose **Start in production mode** and tap **Create**.
+4. When the database opens, tap the **Rules** tab at the top.
+   - Delete everything in the box.
+   - Open [`firestore.rules`](firestore.rules) in this project, copy all of it, and paste it into the box.
+   - Tap **Publish**.
+5. Go back to the project's home page (**Project Overview**, top left). Tap **+ Add app** and choose the **Web** icon, which looks like `</>`.
+   - Nickname: `Sleep app`. Leave **Firebase Hosting** unticked. Tap **Register app**.
+   - You'll see a box of code containing `const firebaseConfig = { apiKey: "...", ... };`. **Copy that `{ ... }` part.** You can ignore the rest.
+
+### Part 2: Connect the app to it (once)
+
+Either:
+
+- **Easiest:** paste the `firebaseConfig` block to Claude and ask it to turn on sync. It will put it in the right place for you.
+
+Or do it yourself on github.com:
+
+1. Open [`sync-config.js`](sync-config.js) in this project and tap the **pencil** icon (Edit).
+2. Replace `null` in the last line with the `{ ... }` block you copied. The last line should look like `window.SYNC_CONFIG = { apiKey: "...", ... };`.
+3. Tap **Commit changes**.
+
+These settings aren't secret, because every Firebase website includes them. The rules from step 4 and your family code are what keep the log private.
+
+Wait a minute or two for the website to update. Then close the app on your phone completely and open it again.
+
+### Part 3: Link the two phones
+
+**On your phone:**
+1. Open the app and tap the **round initial** (top right) → **Sync with partner** → **Start syncing**.
+2. Tap **Send code to partner** and send it by WhatsApp, iMessage or email.
+
+**On your partner's phone:**
+1. Open the app link and **add it to the home screen** (see Step 3 at the top), then open it from the icon.
+2. Tap the **round initial** → **Sync with partner** → **I have a code**.
+3. Paste the code (pasting the whole message works too) and tap **Join**.
+
+That's it. A **green dot** on the round initial means everything is synced. Sleeps and feeds that were already on either phone are kept and merged.
+
+| Dot on the initial | Meaning |
+|---|---|
+| 🟢 Green | Synced and up to date |
+| 🟠 Orange | Offline or connecting. Changes are saved and will sync later |
+| 🔴 Red | Something's wrong with the setup. Check Part 1 step 4 (Rules) and Part 2 |
 
 ### Alternative if you'd rather keep the project private
 
