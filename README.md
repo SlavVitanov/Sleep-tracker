@@ -2,6 +2,11 @@
 
 A small tracker for sleeps and feeds that lives on your phone's home screen and works like a normal app.
 
+- **A little face** at the top that keeps Sye company. It sleeps (with floating z's under a starry sky) while Sye sleeps, and is awake and curious otherwise.
+  - It blinks, glances around and looks wherever you tap.
+  - It yawns when a sleep starts and pops its eyes open on wake-up.
+  - It smiles at feeds and chews when you log solids.
+  - Tap it for a giggle, a wink or a tongue-out, or tap it five times quickly. If Sye is asleep, it just peeks one eye open.
 - **One big button**: tap *Start sleep* when the baby falls asleep and *Wake up* when they wake. The timer keeps going even if you close the app.
 - **Feeds**: tap **Liquids** or **Solids** under the timer.
   - **Liquids**: choose Milk, Formula or Water and optionally type the amount in ml, or tap a quick size. It remembers your last amount.
@@ -52,7 +57,7 @@ Open it from the new home-screen icon from now on. It opens full screen like a r
 
 ## Good to know
 
-- **Change the name**: tap the round initial in the top-right corner.
+- **Settings and the baby's name**: scroll to the top and tap the round initial in the top-right corner.
 - **Back up your data** now and then: tap the round initial, then **Save a backup**, and keep the file somewhere safe (Files, Google Drive, email it to yourself). If you get a new phone, use **Restore from backup**.
 - **Always use the home-screen icon.** Data saved in the home-screen app and data saved in a normal browser tab are kept separately.
 - **Two phones?** Without sync, each phone keeps its own log. To share one log, set up [sync](#sync-between-two-phones).
