@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>Sleep</title>
 <meta name="description" content="A tiny sleep tracker for your little one.">
-<meta name="theme-color" content="#0b0b10" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#f4f4f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#13132a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#fbf6f0" media="(prefers-color-scheme: light)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -15,88 +15,178 @@
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>
+  @font-face {
+    font-family: "Nunito";
+    src: url(fonts/nunito.woff2) format("woff2");
+    font-weight: 200 1000;
+    font-display: swap;
+  }
   :root {
-    --bg: #f4f4f7;
+    --bg: #fbf6f0;
     --card: #ffffff;
-    --card-2: #eeeef3;
-    --text: #0b0b10;
-    --muted: #6e6e7a;
-    --faint: #a9a9b4;
-    --line: rgba(10, 10, 20, 0.07);
-    --night: #6c5ce7;
-    --night-2: #8f7dff;
-    --nap: #ffb547;
-    --nap-2: #ffcf80;
-    --good: #18b67a;
-    --danger: #ff4d5e;
-    --milk: #2f8cf0;
-    --solid: #1fa868;
-    --rail: rgba(10, 10, 20, 0.09);
-    --btn: #0b0b10;
+    --card-2: #f5ede4;
+    --text: #2b2622;
+    --muted: #8c8178;
+    --faint: #c2b8ad;
+    --line: rgba(70, 45, 20, 0.08);
+    --night: #6a62e0;
+    --night-2: #8e87f0;
+    --nap: #ffbe3d;
+    --nap-2: #ffd98a;
+    --sun: #ff8a3d;
+    --good: #2bb673;
+    --danger: #f2545b;
+    --milk: #3c9bef;
+    --solid: #2bb673;
+    --rail: rgba(70, 45, 20, 0.1);
+    --btn: #2b2622;
     --btn-text: #ffffff;
-    --shadow: 0 1px 2px rgba(10, 10, 30, 0.04), 0 8px 24px rgba(10, 10, 30, 0.06);
-    --sheet-bg: #ffffff;
-    --scrim: rgba(10, 10, 20, 0.35);
-    --radius: 24px;
+    --shadow: 0 1px 2px rgba(70, 45, 20, 0.04), 0 8px 24px rgba(70, 45, 20, 0.06);
+    --sheet-bg: #fffdfa;
+    --scrim: rgba(40, 25, 10, 0.32);
+    --radius: 26px;
+    /* the face at the top: --ink is its lines, --mouth its open mouth */
+    --fz-h: max(176px, 25vh);
+    --ink: #2b2622;
+    --mouth: #2b2622;
+    --blush: #ff8f7e;
+    --tongue: #ff7fa8;
     color-scheme: light;
   }
+  @supports (height: 1svh) { :root { --fz-h: max(176px, 25svh); } }
   @media (prefers-color-scheme: dark) {
     :root {
-      --bg: #0b0b10;
-      --card: #16161d;
-      --card-2: #1f1f28;
-      --text: #f5f5f8;
-      --muted: #8c8c99;
-      --faint: #55555f;
+      --bg: #13132a;
+      --card: #1e1e3b;
+      --card-2: #2a2a4d;
+      --text: #f6f1ea;
+      --muted: #a19dc2;
+      --faint: #5e5a85;
       --line: rgba(255, 255, 255, 0.06);
-      --night: #7b6cff;
-      --night-2: #a497ff;
-      --nap: #ffb547;
-      --nap-2: #ffd08a;
-      --milk: #5aa9ff;
+      --night: #8078f0;
+      --night-2: #a49ef7;
+      --sun: #ff9a52;
+      --milk: #5aaaf5;
       --solid: #3ccf8a;
-      --rail: rgba(255, 255, 255, 0.08);
-      --btn: #ffffff;
-      --btn-text: #0b0b10;
+      --rail: rgba(255, 255, 255, 0.09);
+      --btn: #f6f1ea;
+      --btn-text: #13132a;
       --shadow: none;
-      --sheet-bg: #17171f;
-      --scrim: rgba(0, 0, 0, 0.6);
+      --sheet-bg: #1e1e3b;
+      --scrim: rgba(5, 5, 20, 0.6);
+      --ink: #f6f1ea;
+      --mouth: #f6f1ea;
+      --blush: #ff8fa0;
       color-scheme: dark;
     }
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  html { background: var(--bg); }
+  html, body { margin: 0; color: var(--text); }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Segoe UI", Roboto, system-ui, sans-serif;
+    font-family: "Nunito", ui-rounded, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
     min-height: 100dvh;
     overscroll-behavior-y: none;
-    font-feature-settings: "tnum" 1, "ss01" 1;
+    font-feature-settings: "tnum" 1;
   }
   button { font: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer; }
   input { font: inherit; color: inherit; }
 
-  .app {
-    max-width: 480px;
-    margin: 0 auto;
-    padding: calc(env(safe-area-inset-top) + 18px) 16px calc(env(safe-area-inset-bottom) + 40px);
+  /* ---------- Face zone (fixed behind the cards) ---------- */
+  .fz {
+    position: fixed; top: 0; left: 0; right: 0; height: var(--fz-h); z-index: 0;
+    overflow: hidden; background: var(--bg);
   }
+  .face-wrap {
+    position: absolute; left: 0; right: 0; top: env(safe-area-inset-top); bottom: 28px;
+    display: grid; place-items: center; will-change: transform, opacity;
+  }
+  .face-hit { position: relative; height: min(132px, 88%); aspect-ratio: 200 / 124; cursor: pointer; }
+  .face { width: 100%; height: 100%; overflow: visible; display: block; }
 
-  /* ---------- Header ---------- */
-  .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
-  .hello { font-size: 14px; color: var(--muted); font-weight: 500; letter-spacing: 0.01em; }
-  .name { font-size: 30px; font-weight: 700; letter-spacing: -0.03em; margin-top: 2px; }
   .avatar {
-    width: 42px; height: 42px; border-radius: 50%;
+    position: absolute; top: calc(env(safe-area-inset-top) + 10px); right: 16px; z-index: 2;
+    width: 40px; height: 40px; border-radius: 50%;
     display: grid; place-items: center;
-    font-weight: 700; font-size: 16px; color: #fff;
-    background: linear-gradient(135deg, var(--night-2), var(--night) 55%, #4b3bd1);
-    box-shadow: 0 6px 18px rgba(108, 92, 231, 0.35);
+    font-weight: 800; font-size: 16px; color: var(--text);
+    background: var(--card); box-shadow: var(--shadow);
     transition: transform .2s ease;
   }
   .avatar:active { transform: scale(0.92); }
+
+  /* Face parts. data-eyes / data-mouth on the svg pick which shapes show. */
+  .face .body { transform-box: view-box; transform-origin: 50% 60%; animation: bob 5s ease-in-out infinite; }
+  .night .face .body { animation: breathe 4.5s ease-in-out infinite; }
+  .face.bounce .body { animation: hop .5s cubic-bezier(.3, 1.6, .5, 1); }
+  @keyframes bob { 50% { transform: translateY(-2.5px); } }
+  @keyframes breathe { 50% { transform: translateY(1.5px) scale(1.03); } }
+  @keyframes hop { 40% { transform: translateY(-7px) scale(1.04, .97); } 70% { transform: translateY(1px) scale(.98, 1.02); } }
+
+  .face .white { fill: #fff; }
+  .face .pupil { fill: #1e1b18; transition: transform .28s cubic-bezier(.3, .7, .2, 1); }
+  .face .open { transform-box: fill-box; transform-origin: 50% 50%; transition: transform .14s ease, opacity .14s ease; }
+  .face .shut, .face .happy, .face .line { fill: none; stroke: var(--ink); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+  .face .shut, .face .happy { opacity: 0; transition: opacity .15s ease; }
+  .face[data-eyes=closed] .open, .face[data-eyes=happy] .open,
+  .face[data-eyes=wink] .R .open, .face[data-eyes=peek] .R .open { transform: scaleY(.05); opacity: 0; }
+  .face[data-eyes=closed] .shut, .face[data-eyes=peek] .R .shut,
+  .face[data-eyes=happy] .happy, .face[data-eyes=wink] .R .happy { opacity: 1; }
+  .face[data-eyes=peek] .L .open { transform: scaleY(.5); }
+  .face[data-eyes=wide] .open { transform: scale(1.12); }
+  .face.blink[data-eyes=open] .open, .face.blink[data-eyes=wide] .open { transform: scaleY(.06); }
+
+  .face .m { opacity: 0; transform-box: fill-box; transform-origin: 50% 30%; transform: scale(.5); transition: opacity .15s ease, transform .22s cubic-bezier(.3, 1.4, .5, 1); }
+  .face .fill { fill: var(--mouth); }
+  .face .tongue { fill: var(--tongue); }
+  .face[data-mouth=smile] .smile, .face[data-mouth=laugh] .laugh, .face[data-mouth=o] .o,
+  .face[data-mouth=yawn] .yawn, .face[data-mouth=blep] .blep, .face[data-mouth=chew] .chew,
+  .face[data-mouth=sleep] .sleep { opacity: 1; transform: none; }
+  .face[data-mouth=chew] .chew { animation: chew .3s ease-in-out infinite alternate; }
+  .face[data-mouth=yawn] .yawn { animation: yawn 1.4s ease-in-out; }
+  .night .face[data-mouth=sleep] .sleep { animation: snore 4.5s ease-in-out infinite; }
+  .face .sleep { fill: var(--ink); }
+  @keyframes chew { from { transform: scaleY(.35); } to { transform: scaleY(1); } }
+  @keyframes yawn { 0% { transform: scale(.4); } 60% { transform: scale(1.1, 1.2); } 100% { transform: scale(1); } }
+  @keyframes snore { 50% { transform: scale(1.35); } }
+
+  .face .blush { fill: var(--blush); opacity: 0; transition: opacity .4s ease; }
+  .face.blushing .blush { opacity: .55; }
+  .face.dizzy .pupil { animation: dizzy .45s linear infinite; }
+  @keyframes dizzy {
+    0% { transform: translate(9px, 0); } 25% { transform: translate(0, 9px); }
+    50% { transform: translate(-9px, 0); } 75% { transform: translate(0, -9px); } 100% { transform: translate(9px, 0); }
+  }
+
+  .zzz { position: absolute; right: -14px; top: -6px; width: 30px; height: 50px; pointer-events: none; }
+  .zzz span {
+    position: absolute; left: 0; bottom: 0; font-weight: 900; color: var(--ink); opacity: 0;
+    font-size: 15px;
+  }
+  .zzz span:nth-child(2) { font-size: 19px; }
+  .zzz span:nth-child(3) { font-size: 24px; }
+  .snoozing .zzz span { animation: zfloat 3.6s ease-in infinite; }
+  .snoozing .zzz span:nth-child(2) { animation-delay: 1.2s; }
+  .snoozing .zzz span:nth-child(3) { animation-delay: 2.4s; }
+  @keyframes zfloat {
+    0% { opacity: 0; transform: translate(0, 0) rotate(-8deg); }
+    20% { opacity: .9; }
+    100% { opacity: 0; transform: translate(18px, -42px) rotate(8deg); }
+  }
+
+  /* The cards live on a panel that slides up over the face */
+  .app {
+    position: relative; z-index: 1;
+    max-width: 480px;
+    margin: calc(var(--fz-h) - 28px) auto 0;
+    padding: 14px 16px calc(env(safe-area-inset-bottom) + 40px);
+    background: var(--bg);
+    border-radius: 32px 32px 0 0;
+    min-height: calc(100vh - var(--fz-h) + 28px);
+  }
+  .app::after { content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 100vh; background: var(--bg); }
 
   /* ---------- Hero ---------- */
   .hero {
@@ -108,14 +198,14 @@
   .hero::before {
     content: ""; position: absolute; inset: -40% -20% auto auto;
     width: 280px; height: 280px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(255, 181, 71, 0.22), transparent 65%);
+    background: radial-gradient(circle, rgba(255, 138, 61, 0.16), transparent 65%);
     z-index: -1; transition: background .6s ease, transform .8s ease;
   }
   .hero.sleeping::before {
-    background: radial-gradient(circle, rgba(123, 108, 255, 0.40), transparent 65%);
+    background: radial-gradient(circle, rgba(106, 98, 224, 0.30), transparent 65%);
     transform: scale(1.25);
   }
-  .status { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--muted); }
+  .status { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--muted); }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--nap); position: relative; }
   .sleeping .dot { background: var(--night-2); }
   .sleeping .dot::after {
@@ -124,54 +214,55 @@
   }
   @keyframes ping { 0% { transform: scale(.5); opacity: .8; } 100% { transform: scale(1.8); opacity: 0; } }
   .timer {
-    font-size: 54px; font-weight: 700; letter-spacing: -0.045em; line-height: 1;
+    font-size: 54px; font-weight: 800; letter-spacing: -0.01em; line-height: 1;
     margin: 14px 0 6px; font-variant-numeric: tabular-nums;
   }
-  .timer small { font-size: 26px; letter-spacing: -0.02em; color: var(--muted); font-weight: 600; }
+  .timer small { font-size: 26px; letter-spacing: -0.01em; color: var(--muted); font-weight: 700; }
   .timer .sec { color: var(--faint); }
   .sub { font-size: 14px; color: var(--muted); min-height: 20px; }
-  .sub button { color: var(--night); font-weight: 600; }
+  .sub button { color: var(--night); font-weight: 700; }
   @media (prefers-color-scheme: dark) { .sub button { color: var(--night-2); } }
 
   .main-btn {
-    margin-top: 20px; width: 100%; height: 56px; border-radius: 18px;
+    margin-top: 20px; width: 100%; height: 58px; border-radius: 999px;
     display: flex; align-items: center; justify-content: center; gap: 10px;
-    background: var(--btn); color: var(--btn-text);
-    font-size: 17px; font-weight: 650; letter-spacing: -0.01em;
+    background: var(--night); color: #fff;
+    box-shadow: 0 10px 22px -12px var(--night);
+    font-size: 17px; font-weight: 750; letter-spacing: -0.01em;
     transition: transform .15s ease, background .3s ease;
   }
   .main-btn:active { transform: scale(0.97); }
   .main-btn svg { width: 20px; height: 20px; }
-  .sleeping .main-btn { background: linear-gradient(135deg, var(--night-2), var(--night) 60%, #4b3bd1); color: #fff; }
+  .sleeping .main-btn { background: var(--sun); box-shadow: 0 10px 22px -12px var(--sun); }
 
   /* ---------- Stat tiles ---------- */
   .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
   .tile { background: var(--card); border-radius: 20px; padding: 14px 14px 13px; box-shadow: var(--shadow); }
-  .tile .label { font-size: 12px; color: var(--muted); font-weight: 500; }
-  .tile .val { font-size: 20px; font-weight: 700; letter-spacing: -0.03em; margin-top: 6px; white-space: nowrap; }
-  .tile .val span { font-size: 13px; color: var(--muted); font-weight: 600; letter-spacing: 0; margin-left: 1px; }
+  .tile .label { font-size: 12px; color: var(--muted); font-weight: 600; }
+  .tile .val { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; margin-top: 6px; white-space: nowrap; }
+  .tile .val span { font-size: 13px; color: var(--muted); font-weight: 700; letter-spacing: 0; margin-left: 1px; }
 
   /* ---------- Section ---------- */
   .card { background: var(--card); border-radius: var(--radius); padding: 20px; margin-top: 12px; box-shadow: var(--shadow); }
   .card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
   .card-head > div:first-child { min-width: 0; }
-  .eyebrow { font-size: 13px; color: var(--muted); font-weight: 500; }
-  .big { font-size: 32px; font-weight: 700; letter-spacing: -0.04em; margin-top: 4px; line-height: 1.1; }
-  .big span { font-size: 18px; color: var(--muted); font-weight: 600; letter-spacing: -0.01em; }
-  .delta { font-size: 13px; font-weight: 600; margin-top: 4px; color: var(--muted); min-height: 18px; }
+  .eyebrow { font-size: 13px; color: var(--muted); font-weight: 600; }
+  .big { font-size: 32px; font-weight: 800; letter-spacing: -0.01em; margin-top: 4px; line-height: 1.1; }
+  .big span { font-size: 18px; color: var(--muted); font-weight: 700; letter-spacing: -0.01em; }
+  .delta { font-size: 13px; font-weight: 700; margin-top: 4px; color: var(--muted); min-height: 18px; }
   .delta.up { color: var(--good); }
 
   .seg { display: inline-flex; background: var(--card-2); border-radius: 12px; padding: 3px; position: relative; flex-shrink: 0; }
-  .seg button { position: relative; z-index: 1; font-size: 13px; font-weight: 600; padding: 7px 11px; border-radius: 9px; color: var(--muted); transition: color .2s; }
+  .seg button { position: relative; z-index: 1; font-size: 13px; font-weight: 700; padding: 7px 11px; border-radius: 9px; color: var(--muted); transition: color .2s; }
   .seg button.on { color: var(--text); }
   .seg .thumb { position: absolute; top: 3px; bottom: 3px; border-radius: 9px; background: var(--card); box-shadow: 0 1px 3px rgba(0,0,0,.12); transition: left .3s cubic-bezier(.3,.7,.2,1), width .3s cubic-bezier(.3,.7,.2,1); }
-  @media (prefers-color-scheme: dark) { .seg .thumb { background: #34343f; } }
+  @media (prefers-color-scheme: dark) { .seg .thumb { background: #3a3a66; } }
 
   /* ---------- Chart ---------- */
   .chart { position: relative; height: 190px; margin-top: 22px; padding-right: 30px; }
   .grid { position: absolute; inset: 0 0 22px 0; pointer-events: none; }
   .gl { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--line); }
-  .gl b { position: absolute; right: 0; top: -8px; font-size: 10px; font-weight: 600; color: var(--faint); }
+  .gl b { position: absolute; right: 0; top: -8px; font-size: 10px; font-weight: 700; color: var(--faint); }
   .avg-line { position: absolute; left: 0; right: 30px; border-top: 1.5px dashed var(--muted); opacity: .45; transition: bottom .5s cubic-bezier(.3,.7,.2,1); }
   .bars { position: absolute; inset: 0 30px 0 0; display: flex; align-items: flex-end; gap: var(--gap, 8px); }
   .col { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; min-width: 0; }
@@ -185,18 +276,18 @@
   .col.today .seg-night { background: repeating-linear-gradient(-45deg, var(--night), var(--night) 4px, var(--night-2) 4px, var(--night-2) 8px); }
   .col.today .seg-nap { background: repeating-linear-gradient(-45deg, var(--nap), var(--nap) 4px, var(--nap-2) 4px, var(--nap-2) 8px); }
   .bars.has-sel .col:not(.sel) .stack { opacity: .3; }
-  .xl { height: 22px; line-height: 22px; font-size: 11px; font-weight: 600; color: var(--faint); white-space: nowrap; }
+  .xl { height: 22px; line-height: 22px; font-size: 11px; font-weight: 700; color: var(--faint); white-space: nowrap; }
   .col.sel .xl { color: var(--text); }
-  .legend { display: flex; gap: 16px; margin-top: 14px; font-size: 12px; color: var(--muted); font-weight: 500; flex-wrap: wrap; }
+  .legend { display: flex; gap: 16px; margin-top: 14px; font-size: 12px; color: var(--muted); font-weight: 600; flex-wrap: wrap; }
   .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 3px; margin-right: 6px; vertical-align: 0; }
 
   /* ---------- History ---------- */
   .list-head { display: flex; align-items: center; justify-content: space-between; margin: 26px 4px 8px; }
-  .list-head h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.03em; margin: 0; }
-  .pill-btn { font-size: 14px; font-weight: 600; padding: 8px 14px; border-radius: 999px; background: var(--card); box-shadow: var(--shadow); display: inline-flex; align-items: center; gap: 6px; }
+  .list-head h2 { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; margin: 0; }
+  .pill-btn { font-size: 14px; font-weight: 700; padding: 8px 14px; border-radius: 999px; background: var(--card); box-shadow: var(--shadow); display: inline-flex; align-items: center; gap: 6px; }
   .pill-btn:active { transform: scale(.96); }
   .day { margin-top: 12px; background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
-  .day-h { display: flex; justify-content: space-between; padding: 14px 18px 4px; font-size: 13px; color: var(--muted); font-weight: 600; }
+  .day-h { display: flex; justify-content: space-between; padding: 14px 18px 4px; font-size: 13px; color: var(--muted); font-weight: 700; }
   .row { display: flex; align-items: center; gap: 14px; padding: 12px 18px; width: 100%; text-align: left; transition: background .15s; }
   .row:active { background: var(--card-2); }
   .ico { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; }
@@ -205,14 +296,14 @@
   .ico.nap { background: rgba(255, 181, 71, 0.18); color: #e8930c; }
   @media (prefers-color-scheme: dark) { .ico.night { color: var(--night-2); } .ico.nap { color: var(--nap); } }
   .row .mid { flex: 1; min-width: 0; }
-  .row .t1 { font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+  .row .t1 { font-size: 16px; font-weight: 700; letter-spacing: -0.01em; }
   .row .t2 { font-size: 13px; color: var(--muted); margin-top: 2px; }
-  .row .dur { font-size: 16px; font-weight: 650; letter-spacing: -0.02em; }
+  .row .dur { font-size: 16px; font-weight: 750; letter-spacing: -0.01em; }
   .row .dur.live { color: var(--night); }
   @media (prefers-color-scheme: dark) { .row .dur.live { color: var(--night-2); } }
   .empty-state { text-align: center; color: var(--muted); font-size: 14px; padding: 34px 20px; background: var(--card); border-radius: var(--radius); margin-top: 12px; box-shadow: var(--shadow); }
   .empty-state .moon { font-size: 34px; margin-bottom: 8px; }
-  .more { display: block; margin: 14px auto 0; color: var(--muted); font-weight: 600; font-size: 14px; padding: 8px 14px; }
+  .more { display: block; margin: 14px auto 0; color: var(--muted); font-weight: 700; font-size: 14px; padding: 8px 14px; }
 
   /* ---------- Sheet ---------- */
   .scrim { position: fixed; inset: 0; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity .3s ease; z-index: 20; -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
@@ -220,38 +311,37 @@
   .sheet {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 21;
     max-width: 480px; margin: 0 auto;
-    background: var(--sheet-bg); border-radius: 28px 28px 0 0;
+    background: var(--sheet-bg); border-radius: 32px 32px 0 0;
     padding: 10px 20px calc(env(safe-area-inset-bottom) + 20px);
     transform: translateY(105%); transition: transform .38s cubic-bezier(.3,.7,.2,1);
     max-height: 90vh; overflow-y: auto;
   }
   .sheet.open { transform: translateY(0); }
   .grab { width: 38px; height: 5px; border-radius: 3px; background: var(--faint); opacity: .5; margin: 0 auto 16px; }
-  .sheet h3 { font-size: 22px; font-weight: 700; letter-spacing: -0.03em; margin: 0 0 4px; }
+  .sheet h3 { font-size: 22px; font-weight: 800; letter-spacing: -0.01em; margin: 0 0 4px; }
   .sheet p.hint { margin: 0 0 18px; color: var(--muted); font-size: 14px; }
   .field { background: var(--card-2); border-radius: 16px; padding: 10px 14px; margin-bottom: 10px; display: block; }
-  .field span { display: block; font-size: 12px; color: var(--muted); font-weight: 600; }
-  .field input { width: 100%; border: 0; background: transparent; outline: none; font-size: 17px; font-weight: 600; padding: 4px 0 2px; min-height: 30px; }
+  .field span { display: block; font-size: 12px; color: var(--muted); font-weight: 700; }
+  .field input { width: 100%; border: 0; background: transparent; outline: none; font-size: 17px; font-weight: 700; padding: 4px 0 2px; min-height: 30px; }
   .field input::-webkit-date-and-time-value { text-align: left; }
   .preview { text-align: center; font-size: 14px; color: var(--muted); margin: 6px 0 14px; min-height: 20px; }
   .preview b { color: var(--text); }
   .preview.bad b { color: var(--danger); }
-  .btn { width: 100%; height: 54px; border-radius: 16px; font-size: 17px; font-weight: 650; background: var(--btn); color: var(--btn-text); transition: transform .15s, opacity .2s; }
+  .btn { width: 100%; height: 56px; border-radius: 999px; font-size: 17px; font-weight: 750; background: var(--btn); color: var(--btn-text); transition: transform .15s, opacity .2s; }
   .btn:active { transform: scale(.98); }
   .btn:disabled { opacity: .35; }
   .btn.ghost { background: transparent; color: var(--danger); margin-top: 6px; }
   .btn.soft { background: var(--card-2); color: var(--text); margin-top: 10px; }
   .menu { background: var(--card-2); border-radius: 18px; overflow: hidden; margin: 14px 0; }
-  .menu button, .menu label.mi { display: flex; align-items: center; gap: 12px; width: 100%; padding: 15px 16px; font-size: 16px; font-weight: 550; text-align: left; cursor: pointer; }
+  .menu button, .menu label.mi { display: flex; align-items: center; gap: 12px; width: 100%; padding: 15px 16px; font-size: 16px; font-weight: 650; text-align: left; cursor: pointer; }
   .menu > * + * { border-top: 1px solid var(--line); }
   .menu .danger { color: var(--danger); }
   .menu svg { width: 20px; height: 20px; color: var(--muted); }
   .menu .danger svg { color: var(--danger); }
   .foot { text-align: center; font-size: 12px; color: var(--faint); margin-top: 8px; line-height: 1.5; }
-  .menu .right { margin-left: auto; font-size: 14px; color: var(--muted); font-weight: 550; display: inline-flex; align-items: center; gap: 6px; }
+  .menu .right { margin-left: auto; font-size: 14px; color: var(--muted); font-weight: 650; display: inline-flex; align-items: center; gap: 6px; }
 
   /* ---------- Sync ---------- */
-  .avatar { position: relative; }
   .avatar .badge {
     position: absolute; right: -1px; bottom: -1px; width: 13px; height: 13px; border-radius: 50%;
     border: 2.5px solid var(--bg); display: none;
@@ -261,10 +351,10 @@
   .s-wait { background: var(--nap); }
   .s-error { background: var(--danger); }
   .avatar .badge.s-live, .avatar .badge.s-wait, .avatar .badge.s-error { display: block; }
-  .sync-status { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--muted); margin: -6px 0 16px; }
+  .sync-status { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--muted); margin: -6px 0 16px; }
   .code-card { background: var(--card-2); border-radius: 18px; padding: 16px; text-align: center; margin-bottom: 10px; }
-  .code-card span { display: block; font-size: 12px; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
-  .code-card b { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 19px; letter-spacing: .04em; font-weight: 700; word-break: break-all; user-select: all; -webkit-user-select: all; }
+  .code-card span { display: block; font-size: 12px; color: var(--muted); font-weight: 700; margin-bottom: 8px; }
+  .code-card b { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 19px; letter-spacing: .04em; font-weight: 800; word-break: break-all; user-select: all; -webkit-user-select: all; }
   .field input.code { font-family: ui-monospace, "SF Mono", Menlo, monospace; text-transform: uppercase; letter-spacing: .04em; }
   .steps { margin: 0 0 16px; padding-left: 20px; color: var(--muted); font-size: 14px; line-height: 1.55; }
   .steps b { color: var(--text); }
@@ -274,19 +364,20 @@
   .qa { background: var(--card); border-radius: 20px; padding: 14px; display: flex; align-items: center; gap: 12px; text-align: left; box-shadow: var(--shadow); transition: transform .15s ease; min-width: 0; }
   .qa:active { transform: scale(.97); }
   .qa > span:last-child { min-width: 0; }
-  .qa b { display: block; font-size: 16px; font-weight: 650; letter-spacing: -0.01em; }
-  .qa small { display: block; font-size: 12px; color: var(--muted); font-weight: 500; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .qa b { display: block; font-size: 16px; font-weight: 750; letter-spacing: -0.01em; }
+  .qa small { display: block; font-size: 12px; line-height: 1.35; color: var(--muted); font-weight: 600; margin-top: 2px; }
+  .qa small span { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ico.milk { background: rgba(47, 140, 240, 0.14); color: var(--milk); }
   .ico.solid { background: rgba(31, 168, 104, 0.15); color: var(--solid); }
   .seg.wide { display: flex; width: 100%; margin-bottom: 12px; }
   .seg.wide button { flex: 1; padding: 10px; font-size: 15px; }
   .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 14px; }
-  .chip { padding: 8px 14px; border-radius: 999px; background: var(--card-2); font-size: 14px; font-weight: 600; transition: background .2s, color .2s, transform .1s; }
+  .chip { padding: 8px 14px; border-radius: 999px; background: var(--card-2); font-size: 14px; font-weight: 700; transition: background .2s, color .2s, transform .1s; }
   .chip:active { transform: scale(.95); }
   .chip.on { background: var(--btn); color: var(--btn-text); }
   .field-row { display: flex; align-items: baseline; gap: 6px; }
   .field-row input { flex: 1; min-width: 0; }
-  .field-row em { font-style: normal; font-size: 17px; font-weight: 600; color: var(--muted); }
+  .field-row em { font-style: normal; font-size: 17px; font-weight: 700; color: var(--muted); }
   .menu .ico { width: 36px; height: 36px; }
   .menu .ico svg { width: 18px; height: 18px; color: inherit; }
 
@@ -301,7 +392,7 @@
   .tl-item:first-child::before { top: 50%; }
   .tl-item:last-child::before { bottom: 50%; }
   .tl-item:only-child::before { display: none; }
-  .tl-time { font-size: 13px; font-weight: 600; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+  .tl-time { font-size: 13px; font-weight: 700; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
   .tl-item .ico { width: 36px; height: 36px; position: relative; z-index: 1; box-shadow: 0 0 0 4px var(--card); }
   .tl-item .ico svg { width: 17px; height: 17px; }
   .tl-item .ico.night { background: color-mix(in srgb, var(--night) 16%, var(--card)); }
@@ -310,9 +401,9 @@
   .tl-item .ico.solid { background: color-mix(in srgb, var(--solid) 16%, var(--card)); }
   .tl-item.live .ico::after { content: ""; position: absolute; inset: -3px; border-radius: 50%; border: 2px solid var(--night-2); animation: ping 2s ease-out infinite; }
   .tl-item .mid { min-width: 0; }
-  .tl-item .t1 { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tl-item .t1 { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .tl-item .t2 { font-size: 13px; color: var(--muted); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .tl-item .dur { font-size: 15px; font-weight: 650; letter-spacing: -0.02em; white-space: nowrap; }
+  .tl-item .dur { font-size: 15px; font-weight: 750; letter-spacing: -0.01em; white-space: nowrap; }
   .tl-item .dur.live { color: var(--night); }
   @media (prefers-color-scheme: dark) { .tl-item .dur.live { color: var(--night-2); } }
 
@@ -320,27 +411,62 @@
   .toast {
     position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 20px); z-index: 30;
     transform: translate(-50%, calc(100% + 60px)); opacity: 0; transition: transform .35s cubic-bezier(.3,.7,.2,1), opacity .25s;
-    background: #1d1d26; color: #fff; border-radius: 16px; padding: 12px 12px 12px 16px;
-    display: flex; align-items: center; gap: 14px; font-size: 15px; font-weight: 550;
+    background: #2b2622; color: #fff; border-radius: 999px; padding: 12px 12px 12px 16px;
+    display: flex; align-items: center; gap: 14px; font-size: 15px; font-weight: 650;
     box-shadow: 0 10px 30px rgba(0,0,0,.25); max-width: calc(100% - 32px); white-space: nowrap;
   }
-  @media (prefers-color-scheme: dark) { .toast { background: #2a2a35; } }
+  @media (prefers-color-scheme: dark) { .toast { background: #2f2f58; } }
   .toast.show { transform: translate(-50%, 0); opacity: 1; }
-  .toast button { color: var(--night-2); font-weight: 700; padding: 4px 8px; }
+  .toast button { color: var(--night-2); font-weight: 800; padding: 4px 8px; }
 
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
 </style>
 </head>
 <body>
-<div class="app">
-
-  <header class="top">
-    <div>
-      <div class="hello" id="hello">Hello</div>
-      <div class="name" id="babyName">Sye</div>
+<div class="fz" id="fz">
+  <div class="face-wrap" id="faceWrap">
+    <div class="face-hit" id="faceHit">
+      <svg class="face" id="face" viewBox="0 0 200 124" data-eyes="open" data-mouth="smile" aria-hidden="true">
+        <defs>
+          <clipPath id="clipL"><circle cx="62" cy="54" r="30"/></clipPath>
+          <clipPath id="clipR"><circle cx="138" cy="54" r="30"/></clipPath>
+          <clipPath id="clipMouth"><path d="M80 92H120Q120 120 100 120Q80 120 80 92Z"/></clipPath>
+        </defs>
+        <g class="body">
+          <ellipse class="blush" cx="30" cy="88" rx="13" ry="7"/>
+          <ellipse class="blush" cx="170" cy="88" rx="13" ry="7"/>
+          <g class="eye L">
+            <g class="open">
+              <circle class="white" cx="62" cy="54" r="30"/>
+              <g clip-path="url(#clipL)"><g class="pupil"><circle cx="62" cy="54" r="19"/></g></g>
+            </g>
+            <path class="shut" d="M40 52Q62 74 84 52"/>
+            <path class="happy" d="M40 62Q62 34 84 62"/>
+          </g>
+          <g class="eye R">
+            <g class="open">
+              <circle class="white" cx="138" cy="54" r="30"/>
+              <g clip-path="url(#clipR)"><g class="pupil"><circle cx="138" cy="54" r="19"/></g></g>
+            </g>
+            <path class="shut" d="M116 52Q138 74 160 52"/>
+            <path class="happy" d="M116 62Q138 34 160 62"/>
+          </g>
+          <path class="m smile line" d="M87 97Q100 110 113 97"/>
+          <g class="m laugh"><path class="fill" d="M80 92H120Q120 120 100 120Q80 120 80 92Z"/><ellipse class="tongue" clip-path="url(#clipMouth)" cx="100" cy="121" rx="14" ry="9"/></g>
+          <ellipse class="m o fill" cx="100" cy="102" rx="7" ry="8.5"/>
+          <ellipse class="m yawn fill" cx="100" cy="104" rx="10" ry="14"/>
+          <g class="m blep"><path class="tongue" d="M94 100v6a6 6 0 0 0 12 0v-6Z"/><path class="line" d="M87 97Q100 108 113 97"/></g>
+          <ellipse class="m chew fill" cx="100" cy="101" rx="9" ry="6"/>
+          <ellipse class="m sleep" cx="100" cy="101" rx="4.5" ry="3.5"/>
+        </g>
+      </svg>
+      <div class="zzz" aria-hidden="true"><span>z</span><span>z</span><span>Z</span></div>
     </div>
-    <button class="avatar" id="avatar" aria-label="Settings"><span id="avatarLetter">S</span><i class="badge" id="syncBadge"></i></button>
-  </header>
+  </div>
+  <button class="avatar" id="avatar" aria-label="Settings"><span id="avatarLetter">S</span><i class="badge" id="syncBadge"></i></button>
+</div>
+
+<div class="app">
 
   <section class="hero" id="hero">
     <div class="status"><span class="dot"></span><span id="statusText">Awake</span></div>
@@ -608,7 +734,7 @@
   function isNight(s, e) {
     let n = 0, d = 0;
     for (const c of split(s, e)) c.night ? (n += c.ms) : (d += c.ms);
-    return n >= d;
+    return n > 0 && n >= d;
   }
 
   function allSleeps(now) {
@@ -628,6 +754,136 @@
     return map;
   }
 
+  // ---------- Face ----------
+  // The little character at the top. It sleeps while the baby sleeps and is awake and curious
+  // otherwise: it blinks, glances around, looks where you tap and reacts to what you log.
+  const Face = (() => {
+    const svg = $('face'), hit = $('faceHit'), wrap = $('faceWrap'), fz = $('fz');
+    const pupils = [...svg.querySelectorAll('.pupil')];
+    const EYES = [[62, 54], [138, 54]], VBW = 200, VBH = 124, REACH = 11;
+    const EXPR = {
+      awake: { eyes: 'open', mouth: 'smile' },
+      asleep: { eyes: 'closed', mouth: 'sleep', blush: true },
+      peek: { eyes: 'peek', mouth: 'sleep', blush: true },
+      yawn: { eyes: 'happy', mouth: 'yawn' },
+      happy: { eyes: 'happy', mouth: 'laugh', blush: true, bounce: true },
+      giggle: { eyes: 'happy', mouth: 'laugh', blush: true, bounce: true },
+      wink: { eyes: 'wink', mouth: 'blep', blush: true },
+      blep: { eyes: 'open', mouth: 'blep' },
+      content: { eyes: 'happy', mouth: 'smile', blush: true },
+      yum: { eyes: 'happy', mouth: 'chew', blush: true },
+      surprised: { eyes: 'wide', mouth: 'o' },
+      dizzy: { eyes: 'open', mouth: 'o', dizzy: true }
+    };
+    const SLEEPY = new Set(['asleep', 'peek']);
+    let sleeping = null, playing = false, stepTimer = null, holdUntil = 0, taps = [], turn = 0, dizzyUntil = 0;
+
+    function apply(name) {
+      const e = EXPR[name];
+      svg.dataset.eyes = e.eyes;
+      svg.dataset.mouth = e.mouth;
+      svg.classList.toggle('blushing', !!e.blush);
+      svg.classList.toggle('dizzy', !!e.dizzy);
+      fz.classList.toggle('snoozing', name === 'asleep');
+      if (e.bounce) { svg.classList.remove('bounce'); void svg.getBoundingClientRect(); svg.classList.add('bounce'); }
+    }
+    const rest = () => (sleeping ? 'asleep' : 'awake');
+
+    // Plays [expression, ms] steps, then settles back to awake / asleep.
+    // While the baby sleeps only sleepy expressions play, unless forced (waking up).
+    function play(steps, force) {
+      if (sleeping && !force && steps.some(([n]) => !SLEEPY.has(n))) return;
+      clearTimeout(stepTimer);
+      playing = true;
+      let i = 0;
+      (function next() {
+        if (i >= steps.length) { playing = false; apply(rest()); return; }
+        const [name, ms] = steps[i++];
+        apply(name);
+        stepTimer = setTimeout(next, ms);
+      })();
+    }
+    // For reactions after a sheet closes, so the face is in view.
+    const later = (steps, ms = 220) => setTimeout(() => play(steps), ms);
+
+    function setSleeping(v) {
+      if (v === sleeping) return;
+      sleeping = v;
+      document.documentElement.classList.toggle('night', v);
+      if (!playing) apply(rest());
+    }
+
+    function setPupils(offsets) {
+      pupils.forEach((p, i) => { p.style.transform = `translate(${offsets[i][0].toFixed(1)}px, ${offsets[i][1].toFixed(1)}px)`; });
+    }
+    function restGaze() {
+      if (Date.now() < holdUntil) return;
+      const down = 5 + 5 * Math.min(1, Math.max(0, scrollY) / 240); // looks down at the cards, more as you scroll
+      setPupils([[0, down], [0, down]]);
+    }
+    function lookAt(x, y, ms = 1600) {
+      const r = svg.getBoundingClientRect();
+      if (!r.width) return;
+      setPupils(EYES.map(([ex, ey]) => {
+        const dx = x - (r.left + ex / VBW * r.width), dy = y - (r.top + ey / VBH * r.height);
+        const d = Math.hypot(dx, dy) || 1, k = REACH * Math.min(1, d / 140);
+        return [dx / d * k, dy / d * k];
+      }));
+      holdUntil = Date.now() + ms;
+      setTimeout(restGaze, ms + 20);
+    }
+    function blink(twice) {
+      svg.classList.add('blink');
+      setTimeout(() => { svg.classList.remove('blink'); if (twice) setTimeout(() => blink(false), 140); }, 120);
+    }
+    (function blinkLoop() {
+      setTimeout(() => {
+        if (!document.hidden && /^(open|wide)$/.test(svg.dataset.eyes)) blink(Math.random() < 0.2);
+        blinkLoop();
+      }, 2400 + Math.random() * 3600);
+    })();
+    (function glanceLoop() {
+      setTimeout(() => {
+        if (!sleeping && !playing && !document.hidden && Date.now() > holdUntil + 3000) {
+          const r = svg.getBoundingClientRect();
+          const [sx, sy] = [[-1, 0.2], [1, 0.2], [-0.7, -0.6], [0.7, -0.6]][Math.floor(Math.random() * 4)];
+          lookAt(r.left + r.width / 2 + sx * 300, r.top + r.height / 2 + sy * 300, 1100);
+        }
+        glanceLoop();
+      }, 6000 + Math.random() * 7000);
+    })();
+
+    function tapFace() {
+      const now = Date.now();
+      if (now < dizzyUntil) return; // let the dizzy spin finish
+      taps = taps.filter(t => now - t < 2500).concat(now);
+      buzz(8);
+      if (sleeping) return play([['peek', 900]]);
+      if (taps.length >= 5) { taps = []; dizzyUntil = now + 1500; return play([['dizzy', 1500], ['giggle', 800]]); }
+      play([[['giggle', 'wink', 'blep'][turn++ % 3], 1200]]);
+    }
+    document.addEventListener('pointerdown', e => {
+      if (hit.contains(e.target)) tapFace();
+      else if (!sleeping) lookAt(e.clientX, e.clientY);
+    }, { capture: true, passive: true });
+
+    // The face drifts up and shrinks a little as the cards slide over it.
+    let ticking = false;
+    addEventListener('scroll', () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        ticking = false;
+        const y = Math.max(0, scrollY);
+        wrap.style.transform = `translateY(${(-y * 0.3).toFixed(1)}px) scale(${(1 - Math.min(y, 300) / 1500).toFixed(3)})`;
+        restGaze();
+      });
+    }, { passive: true });
+
+    restGaze();
+    return { setSleeping, play, later, lookAt };
+  })();
+
   // ---------- Hero ----------
   const ICON_MOON = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 14.3A8.5 8.5 0 0 1 9.7 3.5a.6.6 0 0 0-.8-.7A9.5 9.5 0 1 0 21.2 15.1a.6.6 0 0 0-.7-.8Z"/></svg>';
   const ICON_SUN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2" fill="currentColor" stroke="none"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>';
@@ -636,17 +892,18 @@
     const hero = $('hero');
     const sleeping = !!state.active;
     hero.classList.toggle('sleeping', sleeping);
+    Face.setSleeping(sleeping);
 
     let ms, label, sub;
     if (sleeping) {
       ms = now - state.active;
-      label = isNight(state.active, now) ? 'Sleeping · night' : 'Napping';
+      label = `${state.name} is ${isNight(state.active, now) ? 'sleeping' : 'napping'}`;
       sub = `Fell asleep at ${fmtTime(state.active)} · <button id="adjBtn">Adjust</button>`;
     } else {
       const last = state.sleeps.reduce((a, s) => (s.end > a ? s.end : a), 0);
       if (last) {
         ms = now - last;
-        label = 'Awake';
+        label = `${state.name} is awake`;
         sub = `Woke up at ${fmtTime(last)}${new Date(last).toDateString() !== new Date(now).toDateString() ? ' yesterday' : ''}`;
       } else {
         ms = null;
@@ -678,6 +935,8 @@
 
   $('mainBtn').addEventListener('click', () => {
     const now = Date.now();
+    if (state.active) Face.play([['surprised', 650], ['giggle', 1100]], true);
+    else Face.play([['yawn', 1500]]);
     if (state.active) {
       const start = state.active;
       if (now - start < MIN) {
@@ -864,11 +1123,12 @@
     const milkBits = [];
     if (lm) milkBits.push(fmtAgo(now - lm.at));
     if (t.ml) milkBits.push(`${t.ml} ml today`); else if (t.drinks) milkBits.push(`${t.drinks} today`);
-    $('qaMilk').textContent = milkBits.join(' · ') || 'Log a drink';
+    const lines = (bits) => bits.map(b => `<span>${escapeHtml(b)}</span>`).join('');
+    $('qaMilk').innerHTML = lines(milkBits.length ? milkBits : ['Log a drink']);
     const solidBits = [];
     if (t.meals) solidBits.push(`${t.meals} today`);
     if (ls) solidBits.push(ls.what || fmtAgo(now - ls.at));
-    $('qaSolid').textContent = solidBits.join(' · ') || 'Log a meal';
+    $('qaSolid').innerHTML = lines(solidBits.length ? solidBits : ['Log a meal']);
   }
 
   // Feed sheet
@@ -974,10 +1234,12 @@
       const x = state.feeds.find(y => y.id === feedEditing);
       if (x) { Object.assign(x, f); touch('feeds', x); }
       save(); hide(); buzz(10); renderAll();
+      Face.later([['content', 900]]);
       return toast('Saved');
     }
     const x = addEntry('feeds', { id: uid(), ...f });
     save(); hide(); buzz([12, 60, 12]); renderAll();
+    Face.later(f.type === 'solid' ? [['yum', 1600], ['content', 600]] : [['content', 1400]]);
     const what = f.type === 'milk' ? (f.ml ? `${f.ml} ml ${f.what.toLowerCase()}` : f.what.toLowerCase()) : (f.what || 'solids');
     toast(`Logged ${what}`.slice(0, 40), () => { removeEntry('feeds', x.id); save(); renderAll(); });
   });
@@ -985,9 +1247,14 @@
     const removed = removeEntry('feeds', feedEditing);
     if (!removed) return hide();
     save(); hide(); buzz(20); renderAll();
+    Face.later([['surprised', 900]]);
     toast('Deleted', () => { restoreEntry('feeds', removed); save(); renderAll(); });
   });
-  document.querySelectorAll('.qa[data-feed]').forEach(b => b.addEventListener('click', () => { buzz(8); openFeed(b.dataset.feed); }));
+  document.querySelectorAll('.qa[data-feed]').forEach(b => b.addEventListener('click', () => {
+    buzz(8);
+    Face.play([['happy', 1300]]);
+    openFeed(b.dataset.feed);
+  }));
 
   // ---------- Timeline ----------
   let showDays = 7;
@@ -1061,10 +1328,7 @@
   }
 
   // ---------- Header ----------
-  function renderHeader(now) {
-    const h = new Date(now).getHours();
-    $('hello').textContent = h < 5 ? 'Late night with' : h < 12 ? 'Good morning,' : h < 18 ? 'Good afternoon,' : 'Good evening,';
-    $('babyName').textContent = state.name;
+  function renderHeader() {
     $('avatarLetter').textContent = (state.name.trim()[0] || 'S').toUpperCase();
     document.title = `${state.name} · Sleep & feeds`;
   }
@@ -1072,7 +1336,7 @@
   function renderAll() {
     const now = Date.now();
     const totals = totalsByDay(now);
-    renderHeader(now);
+    renderHeader();
     renderHero(now);
     renderTiles(now, totals);
     renderChart(now, totals);
@@ -1185,6 +1449,7 @@
       addEntry('sleeps', { id: uid(), start: s, end: Math.min(e, Date.now()) });
     }
     save(); hide(); buzz(10); renderAll();
+    Face.later([['content', 900]]);
     toast('Saved');
   });
 
@@ -1198,6 +1463,7 @@
     const removed = removeEntry('sleeps', editing);
     if (!removed) return hide();
     save(); hide(); buzz(20); renderAll();
+    Face.later([['surprised', 900]]);
     toast('Deleted', () => { restoreEntry('sleeps', removed); save(); renderAll(); });
   });
 
@@ -1219,7 +1485,7 @@
   });
   $('inName').addEventListener('input', () => {
     setName($('inName').value.trim() || 'Sye');
-    save(); renderHeader(Date.now());
+    save(); renderHeader();
   });
   $('setDone').addEventListener('click', hide);
 
@@ -1289,7 +1555,7 @@
     $('toastText').textContent = text;
     const b = $('toastBtn');
     b.hidden = !undo;
-    b.onclick = () => { undo && undo(); $('toast').classList.remove('show'); buzz(8); };
+    b.onclick = () => { undo && undo(); $('toast').classList.remove('show'); buzz(8); Face.later([['giggle', 900]], 60); };
     $('toast').classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => $('toast').classList.remove('show'), undo ? 4500 : 2200);

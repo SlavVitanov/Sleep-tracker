@@ -1,7 +1,7 @@
 // Keeps the app working with no internet. Tries the network first so updates
 // arrive automatically, and falls back to the saved copy when offline.
-const CACHE = 'sleep-v4';
-const FILES = ['./', 'index.html', 'sync-config.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
+const CACHE = 'sleep-v6';
+const FILES = ['./', 'index.html', 'sync-config.js', 'fonts/nunito.woff2', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/apple-touch-icon.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting()));
