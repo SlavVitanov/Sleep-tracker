@@ -10,9 +10,9 @@ A small tracker for sleeps and feeds that lives on your phone's home screen and 
 - **One big button**: tap *Start sleep* when the baby falls asleep and *Wake up* when they wake. The timer keeps going even if you close the app.
 - **Feeds**: tap **Liquids** or **Solids** under the timer.
   - **Liquids**: choose Milk, Formula or Water and optionally type the amount in ml, or tap a quick size. It remembers your last amount.
-  - **Solids**: type what was eaten (e.g. *potato, broccoli*) or tap suggestions. Suggestions learn from foods you've logged before.
+  - **Solids**: type what was eaten (e.g. *potato, broccoli*) or tap suggestions, and optionally add the amount in grams. Suggestions learn from foods you've logged before.
 - **Today at a glance**: total sleep, number of naps and the longest stretch, plus time since the last drink, millilitres drunk today and the last meal.
-- **Bar chart**: daily sleep for the last 7, 14 or 30 days, split into night (purple) and naps (orange). Tap a bar to see that day.
+- **Bar chart**: daily sleep for the last 7, 14 or 30 days, split into night (purple) and naps (orange). **24H** shows the last 24 hours, with one bar per hour. Tap any bar for details.
 - **Timeline**: sleeps and feeds together, newest first, with each day's totals and the time between drinks. Tap any entry to change or delete it. Use **+ Add** for anything you forgot to log.
 - **Private**: all data stays on your phone, unless you turn on sync with your partner (optional, see below).
 - **Sync with your partner** (optional): log on either phone and see it on both.
