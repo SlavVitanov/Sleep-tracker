@@ -49,7 +49,6 @@
     --fz-h: max(176px, 25vh);
     --ink: #2b2622;
     --mouth: #2b2622;
-    --blush: #ff8f7e;
     --tongue: #ff7fa8;
     color-scheme: light;
   }
@@ -76,7 +75,6 @@
       --scrim: rgba(5, 5, 20, 0.6);
       --ink: #f6f1ea;
       --mouth: #f6f1ea;
-      --blush: #ff8fa0;
       color-scheme: dark;
     }
   }
@@ -152,29 +150,12 @@
   @keyframes yawn { 0% { transform: scale(.4); } 60% { transform: scale(1.1, 1.2); } 100% { transform: scale(1); } }
   @keyframes snore { 50% { transform: scale(1.35); } }
 
-  .face .blush { fill: var(--blush); opacity: 0; transition: opacity .4s ease; }
-  .face.blushing .blush { opacity: .55; }
   .face.dizzy .pupil { animation: dizzy .45s linear infinite; }
   @keyframes dizzy {
     0% { transform: translate(9px, 0); } 25% { transform: translate(0, 9px); }
     50% { transform: translate(-9px, 0); } 75% { transform: translate(0, -9px); } 100% { transform: translate(9px, 0); }
   }
 
-  .zzz { position: absolute; right: -14px; top: -6px; width: 30px; height: 50px; pointer-events: none; }
-  .zzz span {
-    position: absolute; left: 0; bottom: 0; font-weight: 900; color: var(--ink); opacity: 0;
-    font-size: 15px;
-  }
-  .zzz span:nth-child(2) { font-size: 19px; }
-  .zzz span:nth-child(3) { font-size: 24px; }
-  .snoozing .zzz span { animation: zfloat 3.6s ease-in infinite; }
-  .snoozing .zzz span:nth-child(2) { animation-delay: 1.2s; }
-  .snoozing .zzz span:nth-child(3) { animation-delay: 2.4s; }
-  @keyframes zfloat {
-    0% { opacity: 0; transform: translate(0, 0) rotate(-8deg); }
-    20% { opacity: .9; }
-    100% { opacity: 0; transform: translate(18px, -42px) rotate(8deg); }
-  }
 
   /* The cards live on a panel that slides up over the face */
   .app {
@@ -433,8 +414,6 @@
           <clipPath id="clipMouth"><path d="M80 92H120Q120 120 100 120Q80 120 80 92Z"/></clipPath>
         </defs>
         <g class="body">
-          <ellipse class="blush" cx="30" cy="88" rx="13" ry="7"/>
-          <ellipse class="blush" cx="170" cy="88" rx="13" ry="7"/>
           <g class="eye L">
             <g class="open">
               <circle class="white" cx="62" cy="54" r="30"/>
@@ -451,16 +430,17 @@
             <path class="shut" d="M116 52Q138 74 160 52"/>
             <path class="happy" d="M116 62Q138 34 160 62"/>
           </g>
-          <path class="m smile line" d="M87 97Q100 110 113 97"/>
-          <g class="m laugh"><path class="fill" d="M80 92H120Q120 120 100 120Q80 120 80 92Z"/><ellipse class="tongue" clip-path="url(#clipMouth)" cx="100" cy="121" rx="14" ry="9"/></g>
-          <ellipse class="m o fill" cx="100" cy="102" rx="7" ry="8.5"/>
-          <ellipse class="m yawn fill" cx="100" cy="104" rx="10" ry="14"/>
-          <g class="m blep"><path class="tongue" d="M94 100v6a6 6 0 0 0 12 0v-6Z"/><path class="line" d="M87 97Q100 108 113 97"/></g>
-          <ellipse class="m chew fill" cx="100" cy="101" rx="9" ry="6"/>
-          <ellipse class="m sleep" cx="100" cy="101" rx="4.5" ry="3.5"/>
+          <g transform="translate(0 -9)">
+            <path class="m smile line" d="M87 97Q100 110 113 97"/>
+            <g class="m laugh"><path class="fill" d="M80 92H120Q120 120 100 120Q80 120 80 92Z"/><ellipse class="tongue" clip-path="url(#clipMouth)" cx="100" cy="121" rx="14" ry="9"/></g>
+            <ellipse class="m o fill" cx="100" cy="102" rx="7" ry="8.5"/>
+            <ellipse class="m yawn fill" cx="100" cy="104" rx="10" ry="14"/>
+            <g class="m blep"><path class="tongue" d="M94 100v6a6 6 0 0 0 12 0v-6Z"/><path class="line" d="M87 97Q100 108 113 97"/></g>
+            <ellipse class="m chew fill" cx="100" cy="101" rx="9" ry="6"/>
+            <ellipse class="m sleep" cx="100" cy="101" rx="4.5" ry="3.5"/>
+          </g>
         </g>
       </svg>
-      <div class="zzz" aria-hidden="true"><span>z</span><span>z</span><span>Z</span></div>
     </div>
   </div>
   <button class="avatar" id="avatar" aria-label="Settings"><span id="avatarLetter">S</span><i class="badge" id="syncBadge"></i></button>
@@ -758,20 +738,20 @@
   // The little character at the top. It sleeps while the baby sleeps and is awake and curious
   // otherwise: it blinks, glances around, looks where you tap and reacts to what you log.
   const Face = (() => {
-    const svg = $('face'), hit = $('faceHit'), wrap = $('faceWrap'), fz = $('fz');
+    const svg = $('face'), hit = $('faceHit'), wrap = $('faceWrap');
     const pupils = [...svg.querySelectorAll('.pupil')];
     const EYES = [[62, 54], [138, 54]], VBW = 200, VBH = 124, REACH = 11;
     const EXPR = {
       awake: { eyes: 'open', mouth: 'smile' },
-      asleep: { eyes: 'closed', mouth: 'sleep', blush: true },
-      peek: { eyes: 'peek', mouth: 'sleep', blush: true },
+      asleep: { eyes: 'closed', mouth: 'sleep' },
+      peek: { eyes: 'peek', mouth: 'sleep' },
       yawn: { eyes: 'happy', mouth: 'yawn' },
-      happy: { eyes: 'happy', mouth: 'laugh', blush: true, bounce: true },
-      giggle: { eyes: 'happy', mouth: 'laugh', blush: true, bounce: true },
-      wink: { eyes: 'wink', mouth: 'blep', blush: true },
+      happy: { eyes: 'happy', mouth: 'laugh', bounce: true },
+      giggle: { eyes: 'happy', mouth: 'laugh', bounce: true },
+      wink: { eyes: 'wink', mouth: 'blep' },
       blep: { eyes: 'open', mouth: 'blep' },
-      content: { eyes: 'happy', mouth: 'smile', blush: true },
-      yum: { eyes: 'happy', mouth: 'chew', blush: true },
+      content: { eyes: 'happy', mouth: 'smile' },
+      yum: { eyes: 'happy', mouth: 'chew' },
       surprised: { eyes: 'wide', mouth: 'o' },
       dizzy: { eyes: 'open', mouth: 'o', dizzy: true }
     };
@@ -782,9 +762,7 @@
       const e = EXPR[name];
       svg.dataset.eyes = e.eyes;
       svg.dataset.mouth = e.mouth;
-      svg.classList.toggle('blushing', !!e.blush);
       svg.classList.toggle('dizzy', !!e.dizzy);
-      fz.classList.toggle('snoozing', name === 'asleep');
       if (e.bounce) { svg.classList.remove('bounce'); void svg.getBoundingClientRect(); svg.classList.add('bounce'); }
     }
     const rest = () => (sleeping ? 'asleep' : 'awake');
