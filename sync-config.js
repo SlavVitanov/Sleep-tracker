@@ -12,4 +12,11 @@
 //   messagingSenderId: "123456789",
 //   appId: "1:123456789:web:abc123"
 // };
-window.SYNC_CONFIG = null;
+window.SYNC_CONFIG = {
+  apiKey: "AIzaSyASPHRfuQuInKT_wcH3yLbBpG2kyfQJUkA",
+  authDomain: "sleep-tracker-8b152.firebaseapp.com",
+  projectId: "sleep-tracker-8b152",
+  storageBucket: "sleep-tracker-8b152.firebasestorage.app",
+  messagingSenderId: "775038339538",
+  appId: "1:775038339538:web:85c5f7345045fd6867e00b"
+};
