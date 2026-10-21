@@ -467,17 +467,18 @@
   </div>
 
   <section class="card">
+    <div class="seg wide" id="rangeSeg">
+      <span class="thumb"></span>
+      <button data-n="24">24H</button>
+      <button data-n="7" class="on">7D</button>
+      <button data-n="14">14D</button>
+      <button data-n="30">30D</button>
+    </div>
     <div class="card-head">
       <div>
         <div class="eyebrow" id="chartEyebrow">Daily average</div>
         <div class="big" id="chartBig">0h</div>
         <div class="delta" id="chartDelta"></div>
-      </div>
-      <div class="seg" id="rangeSeg">
-        <span class="thumb"></span>
-        <button data-n="7" class="on">7D</button>
-        <button data-n="14">14D</button>
-        <button data-n="30">30D</button>
       </div>
     </div>
     <div class="chart" id="chart">
@@ -487,7 +488,7 @@
     <div class="legend">
       <span><i style="background:var(--night)"></i>Night</span>
       <span><i style="background:var(--nap)"></i>Naps</span>
-      <span style="margin-left:auto">Days run 7am → 7am</span>
+      <span style="margin-left:auto" id="chartNote">Days run 7am → 7am</span>
     </div>
   </section>
 
@@ -545,6 +546,8 @@
   <div id="solidBox">
     <label class="field"><span id="foodLabel">What did Sye eat?</span><input type="text" id="inFood" placeholder="e.g. potato, broccoli" autocomplete="off" autocapitalize="sentences"></label>
     <div class="chips" id="foodChips"></div>
+    <label class="field"><span>Amount · optional</span><div class="field-row"><input type="number" id="inG" inputmode="numeric" min="0" max="1000" placeholder="e.g. 40"><em>g</em></div></label>
+    <div class="chips" id="gChips"></div>
   </div>
   <label class="field"><span>Time</span><input type="datetime-local" id="inFeedAt"></label>
   <div class="preview" id="feedPreview"></div>
@@ -604,7 +607,7 @@
 
   let state = load();
 
-  // Feeds: { id, at, type: 'milk' | 'solid', ml, what, updatedAt }.
+  // Feeds: { id, at, type: 'milk' | 'solid', ml, what, updatedAt }. ml is the amount: millilitres for drinks, grams for solids.
   // state.tomb / state.ftomb remember deleted sleep / feed ids so deletions reach the other phone.
   // state.dirty holds changes not yet sent to the sync server.
   function load() {
@@ -963,7 +966,71 @@
     return days;
   }
 
+  // One bar per column; nodes are reused so heights animate between ranges.
+  function ensureBars(n, gap) {
+    const bars = $('bars');
+    bars.style.setProperty('--gap', gap);
+    if (bars.children.length !== n) {
+      bars.innerHTML = Array(n).fill('<div class="col"><div class="stack"><div class="seg-nap" style="height:0"></div><div class="seg-night" style="height:0"></div></div><div class="xl"></div></div>').join('');
+      [...bars.children].forEach((c, i) => c.addEventListener('click', () => {
+        selected = selected === i ? null : i; buzz(6); renderChart(Date.now(), totalsByDay(Date.now()));
+      }));
+    }
+    return bars;
+  }
+  function setBar(col, night, nap, top) {
+    const n = col.querySelector('.seg-night'), d = col.querySelector('.seg-nap');
+    requestAnimationFrame(() => {
+      n.style.height = `${(night / top) * 100}%`;
+      d.style.height = `${(nap / top) * 100}%`;
+    });
+    d.classList.toggle('empty', nap === 0 || night === 0);
+  }
+
+  // Last 24 hours: one bar per clock hour, showing how long the baby slept in it.
+  function renderHourly(now) {
+    const end = new Date(now); end.setMinutes(0, 0, 0);
+    const hours = [];
+    for (let i = 23; i >= 0; i--) { const s = end.getTime() - i * HOUR; hours.push({ s, e: s + HOUR, ms: 0 }); }
+    for (const sl of allSleeps(now)) {
+      for (const h of hours) h.ms += Math.max(0, Math.min(sl.end, h.e) - Math.max(sl.start, h.s));
+    }
+    let nightTot = 0, napTot = 0;
+    for (const h of hours) {
+      const hr = new Date(h.s).getHours();
+      h.night = hr < DAY_START_HOUR || hr >= NIGHT_START_HOUR;
+      h.night ? (nightTot += h.ms) : (napTot += h.ms);
+    }
+    $('grid').innerHTML = [[0, '0'], [30, '30m'], [60, '1h']]
+      .map(([m, t]) => `<div class="gl" style="bottom:${(m / 60) * 100}%"><b>${t}</b></div>`).join('');
+    const bars = ensureBars(24, '2px');
+    hours.forEach((h, i) => {
+      const col = bars.children[i];
+      col.classList.toggle('today', i === 23);
+      col.classList.toggle('sel', selected === i);
+      setBar(col, h.night ? h.ms : 0, h.night ? 0 : h.ms, HOUR);
+      const hr = new Date(h.s).getHours();
+      col.querySelector('.xl').textContent = hr % 6 === 0 ? pad(hr) : '';
+    });
+    bars.classList.toggle('has-sel', selected != null);
+    $('chartNote').textContent = 'Each bar is one hour';
+    const el = $('chartDelta');
+    el.className = 'delta';
+    if (selected != null && hours[selected]) {
+      const h = hours[selected];
+      $('chartEyebrow').textContent = `${fmtTime(h.s)} – ${fmtTime(h.e)}`;
+      $('chartBig').innerHTML = fmtDur(h.ms, true);
+      el.textContent = h.ms ? (h.night ? 'Night sleep' : 'Nap') : 'Awake';
+    } else {
+      $('chartEyebrow').textContent = 'Last 24 hours';
+      $('chartBig').innerHTML = fmtDur(nightTot + napTot, true);
+      el.textContent = nightTot + napTot ? `${fmtDur(nightTot)} night · ${fmtDur(napTot)} naps` : 'No sleep in the last 24 hours';
+    }
+  }
+
   function renderChart(now, totals) {
+    if (range === 24) return renderHourly(now);
+    $('chartNote').textContent = 'Days run 7am → 7am';
     const days = chartDays(now);
     const today = days[days.length - 1];
     const vals = days.map(k => ({ k, ...(totals[k] || { night: 0, nap: 0 }) }));
@@ -986,26 +1053,13 @@
     if (avg) g += `<div class="avg-line" style="bottom:${(avg / top) * 100}%"></div>`;
     grid.innerHTML = g;
 
-    // bars — reuse nodes so heights animate
-    const bars = $('bars');
-    bars.style.setProperty('--gap', range === 7 ? '12px' : range === 14 ? '6px' : '3px');
-    if (bars.children.length !== vals.length) {
-      bars.innerHTML = vals.map(() => '<div class="col"><div class="stack"><div class="seg-nap" style="height:0"></div><div class="seg-night" style="height:0"></div></div><div class="xl"></div></div>').join('');
-      [...bars.children].forEach((c, i) => c.addEventListener('click', () => {
-        selected = selected === i ? null : i; buzz(6); renderChart(Date.now(), totalsByDay(Date.now()));
-      }));
-    }
+    const bars = ensureBars(vals.length, range === 7 ? '12px' : range === 14 ? '6px' : '3px');
     const labelEvery = range === 7 ? 1 : range === 14 ? 2 : 5;
     vals.forEach((v, i) => {
       const col = bars.children[i];
       col.classList.toggle('today', v.k === today);
       col.classList.toggle('sel', selected === i);
-      const nap = col.querySelector('.seg-nap'), night = col.querySelector('.seg-night');
-      requestAnimationFrame(() => {
-        night.style.height = `${(v.night / top) * 100}%`;
-        nap.style.height = `${(v.nap / top) * 100}%`;
-      });
-      nap.classList.toggle('empty', v.nap === 0 || v.night === 0);
+      setBar(col, v.night, v.nap, top);
       const d = keyToDate(v.k);
       const fromEnd = vals.length - 1 - i;
       col.querySelector('.xl').textContent = range === 7 ? WD[d.getDay()] : (fromEnd % labelEvery === 0 ? d.getDate() : '');
@@ -1059,13 +1113,14 @@
   const ICON_BOWL = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18a9 8 0 0 1-18 0Z"/><path d="M15.5 3.5 12.5 10"/><path d="M8 9.5c0-1.4 1-1.6 1-3"/></svg>';
   const DRINKS = ['Milk', 'Formula', 'Water'];
   const ML_PICKS = [60, 90, 120, 150, 180, 210];
+  const G_PICKS = [10, 20, 30, 50, 80, 100];
   const FOOD_IDEAS = ['Potato', 'Broccoli', 'Carrot', 'Banana', 'Avocado', 'Sweet potato', 'Porridge', 'Apple', 'Pear', 'Yoghurt'];
 
   // Checks a feed from a backup or the other phone; returns a clean copy or null.
   function cleanFeed(f) {
     if (!f || typeof f.at !== 'number' || (f.type !== 'milk' && f.type !== 'solid')) return null;
     const ml = typeof f.ml === 'number' && f.ml > 0 && f.ml <= 2000 ? Math.round(f.ml) : null;
-    return { id: String(f.id || uid()), at: f.at, type: f.type, ml: f.type === 'milk' ? ml : null, what: typeof f.what === 'string' ? f.what.slice(0, 160) : '' };
+    return { id: String(f.id || uid()), at: f.at, type: f.type, ml, what: typeof f.what === 'string' ? f.what.slice(0, 160) : '' };
   }
   function parseFoods(text) {
     const out = [];
@@ -1081,8 +1136,8 @@
     const map = {};
     for (const f of state.feeds) {
       const k = sleepDayOf(f.at);
-      const m = map[k] || (map[k] = { ml: 0, drinks: 0, meals: 0 });
-      if (f.type === 'milk') { m.drinks++; m.ml += f.ml || 0; } else m.meals++;
+      const m = map[k] || (map[k] = { ml: 0, drinks: 0, meals: 0, g: 0 });
+      if (f.type === 'milk') { m.drinks++; m.ml += f.ml || 0; } else { m.meals++; m.g += f.ml || 0; }
     }
     return map;
   }
@@ -1096,7 +1151,7 @@
   }
 
   function renderQuick(now, ftotals) {
-    const t = ftotals[sleepDayOf(now)] || { ml: 0, drinks: 0, meals: 0 };
+    const t = ftotals[sleepDayOf(now)] || { ml: 0, drinks: 0, meals: 0, g: 0 };
     const lm = lastFeed('milk'), ls = lastFeed('solid');
     const milkBits = [];
     if (lm) milkBits.push(fmtAgo(now - lm.at));
@@ -1104,7 +1159,7 @@
     const lines = (bits) => bits.map(b => `<span>${escapeHtml(b)}</span>`).join('');
     $('qaMilk').innerHTML = lines(milkBits.length ? milkBits : ['Log a drink']);
     const solidBits = [];
-    if (t.meals) solidBits.push(`${t.meals} today`);
+    if (t.meals) solidBits.push(`${t.meals} today${t.g ? ` · ${t.g} g` : ''}`);
     if (ls) solidBits.push(ls.what || fmtAgo(now - ls.at));
     $('qaSolid').innerHTML = lines(solidBits.length ? solidBits : ['Log a meal']);
   }
@@ -1123,6 +1178,7 @@
       drink = f.type === 'milk' ? (f.what || 'Milk') : (lm && lm.what) || 'Milk';
       $('inMl').value = f.ml || '';
       $('inFood').value = f.type === 'solid' ? f.what : '';
+      $('inG').value = f.type === 'solid' && f.ml ? f.ml : '';
       $('inFeedAt').value = toLocalInput(f.at);
       $('feedDel').style.display = '';
     } else {
@@ -1131,6 +1187,7 @@
       drink = (lm && lm.what) || 'Milk';
       $('inMl').value = lm && lm.ml ? lm.ml : '';
       $('inFood').value = '';
+      $('inG').value = '';
       $('inFeedAt').value = toLocalInput(Date.now());
       $('feedDel').style.display = 'none';
     }
@@ -1161,6 +1218,8 @@
     const ml = +$('inMl').value;
     $('drinkChips').innerHTML = DRINKS.map(d => `<button class="chip${d === drink ? ' on' : ''}" data-drink="${d}">${d}</button>`).join('');
     $('mlChips').innerHTML = ML_PICKS.map(n => `<button class="chip${n === ml ? ' on' : ''}" data-ml="${n}">${n} ml</button>`).join('');
+    const g = +$('inG').value;
+    $('gChips').innerHTML = G_PICKS.map(n => `<button class="chip${n === g ? ' on' : ''}" data-g="${n}">${n} g</button>`).join('');
     const chosen = parseFoods($('inFood').value).map(x => x.toLowerCase());
     $('foodChips').innerHTML = foodIdeas().map(x => `<button class="chip${chosen.includes(x.toLowerCase()) ? ' on' : ''}" data-food="${escapeHtml(x)}">${escapeHtml(x)}</button>`).join('');
   }
@@ -1173,6 +1232,11 @@
     $('inMl').value = +$('inMl').value === +b.dataset.ml ? '' : b.dataset.ml;
     buzz(6); renderFeedChips(); updateFeedPreview();
   });
+  $('gChips').addEventListener('click', e => {
+    const b = e.target.closest('[data-g]'); if (!b) return;
+    $('inG').value = +$('inG').value === +b.dataset.g ? '' : b.dataset.g;
+    buzz(6); renderFeedChips(); updateFeedPreview();
+  });
   $('foodChips').addEventListener('click', e => {
     const b = e.target.closest('[data-food]'); if (!b) return;
     const list = parseFoods($('inFood').value), k = b.dataset.food.toLowerCase();
@@ -1183,6 +1247,7 @@
   });
   $('inMl').addEventListener('input', () => { renderFeedChips(); updateFeedPreview(); });
   $('inFood').addEventListener('input', () => { renderFeedChips(); updateFeedPreview(); });
+  $('inG').addEventListener('input', () => { renderFeedChips(); updateFeedPreview(); });
   $('inFeedAt').addEventListener('input', updateFeedPreview);
 
   function readFeed() {
@@ -1191,16 +1256,18 @@
       const n = Math.round(+$('inMl').value);
       return { type: 'milk', at, ml: $('inMl').value === '' ? null : n, what: drink };
     }
-    return { type: 'solid', at, ml: null, what: parseFoods($('inFood').value).join(', ') };
+    const g = Math.round(+$('inG').value);
+    return { type: 'solid', at, ml: $('inG').value === '' ? null : g, what: parseFoods($('inFood').value).join(', ') };
   }
   function updateFeedPreview() {
     const f = readFeed(), p = $('feedPreview');
     let ok = true, msg;
     if (isNaN(f.at)) { ok = false; msg = '<b>Pick a time</b>'; }
     else if (f.at > Date.now() + MIN) { ok = false; msg = '<b>That’s in the future</b>'; }
-    else if (f.type === 'milk' && f.ml != null && !(f.ml > 0 && f.ml <= 2000)) { ok = false; msg = '<b>Check the amount</b>'; }
+    else if (f.ml != null && !(f.ml > 0 && f.ml <= 2000)) { ok = false; msg = '<b>Check the amount</b>'; }
     else if (f.type === 'milk') msg = f.ml ? `<b>${f.ml} ml</b> of ${f.what.toLowerCase()}` : `<b>${f.what}</b> · no amount`;
-    else msg = f.what ? `<b>${escapeHtml(f.what)}</b>` : 'Type a food or tap one above';
+    else if (f.what) msg = `<b>${escapeHtml(f.what)}</b>${f.ml ? ` · ${f.ml} g` : ''}`;
+    else msg = f.ml ? `<b>${f.ml} g</b> of solids` : 'Type a food or tap one above';
     p.innerHTML = msg;
     p.classList.toggle('bad', !ok);
     $('feedSave').disabled = !ok;
@@ -1218,7 +1285,7 @@
     const x = addEntry('feeds', { id: uid(), ...f });
     save(); hide(); buzz([12, 60, 12]); renderAll();
     Face.later(f.type === 'solid' ? [['yum', 1600], ['content', 600]] : [['content', 1400]]);
-    const what = f.type === 'milk' ? (f.ml ? `${f.ml} ml ${f.what.toLowerCase()}` : f.what.toLowerCase()) : (f.what || 'solids');
+    const what = f.type === 'milk' ? (f.ml ? `${f.ml} ml ${f.what.toLowerCase()}` : f.what.toLowerCase()) : `${f.what || 'solids'}${f.ml ? ` · ${f.ml} g` : ''}`;
     toast(`Logged ${what}`.slice(0, 40), () => { removeEntry('feeds', x.id); save(); renderAll(); });
   });
   $('feedDel').addEventListener('click', () => {
@@ -1267,11 +1334,12 @@
     let html = '', n = 0;
     for (const [k, list] of groups) {
       if (n++ >= showDays) break;
-      const t = totals[k] || { night: 0, nap: 0 }, ft = ftotals[k] || { ml: 0, meals: 0 };
+      const t = totals[k] || { night: 0, nap: 0 }, ft = ftotals[k] || { ml: 0, meals: 0, g: 0 };
       const sum = [];
       if (t.night + t.nap) sum.push(`${fmtDur(t.night + t.nap)} sleep`);
       if (ft.ml) sum.push(`${ft.ml} ml`);
       if (ft.meals) sum.push(`${ft.meals} meal${ft.meals === 1 ? '' : 's'}`);
+      if (ft.g) sum.push(`${ft.g} g`);
       html += `<div class="day"><div class="day-h"><span>${relDay(k, now)}</span><span>${sum.join(' · ')}</span></div><div class="tl">`;
       for (const it of list) {
         const x = it.x;
@@ -1291,7 +1359,7 @@
             <div class="tl-time">${fmtTime(x.at)}</div>
             <div class="ico ${milk ? 'milk' : 'solid'}">${milk ? ICON_BOTTLE : ICON_BOWL}</div>
             <div class="mid"><div class="t1">${escapeHtml(feedLabel(x))}</div><div class="t2">${t2}</div></div>
-            <div class="dur">${milk && x.ml ? `${x.ml} ml` : ''}</div>
+            <div class="dur">${x.ml ? `${x.ml} ${milk ? 'ml' : 'g'}` : ''}</div>
           </button>`;
         }
       }
