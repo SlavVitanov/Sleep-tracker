@@ -46,13 +46,13 @@
     --scrim: rgba(40, 25, 10, 0.32);
     --radius: 26px;
     /* the face at the top: --ink is its lines, --mouth its open mouth */
-    --fz-h: max(176px, 25vh);
+    --fz-h: max(176px, 27vh);
     --ink: #2b2622;
     --mouth: #2b2622;
     --tongue: #ff7fa8;
     color-scheme: light;
   }
-  @supports (height: 1svh) { :root { --fz-h: max(176px, 25svh); } }
+  @supports (height: 1svh) { :root { --fz-h: max(176px, 27svh); } }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #13132a;
@@ -102,7 +102,7 @@
     position: absolute; left: 0; right: 0; top: env(safe-area-inset-top); bottom: 28px;
     display: grid; place-items: center; will-change: transform, opacity;
   }
-  .face-hit { position: relative; height: min(132px, 88%); aspect-ratio: 200 / 124; cursor: pointer; }
+  .face-hit { position: relative; height: min(142px, 86%); aspect-ratio: 148 / 98; cursor: pointer; }
   .face { width: 100%; height: 100%; overflow: visible; display: block; }
 
   .avatar {
@@ -397,7 +397,7 @@
 <div class="fz" id="fz">
   <div class="face-wrap" id="faceWrap">
     <div class="face-hit" id="faceHit">
-      <svg class="face" id="face" viewBox="0 0 200 124" data-eyes="open" data-mouth="smile" aria-hidden="true">
+      <svg class="face" id="face" viewBox="26 18 148 98" data-eyes="open" data-mouth="smile" aria-hidden="true">
         <defs>
           <clipPath id="clipL"><circle cx="62" cy="54" r="30"/></clipPath>
           <clipPath id="clipR"><circle cx="138" cy="54" r="30"/></clipPath>
@@ -733,7 +733,7 @@
   const Face = (() => {
     const svg = $('face'), hit = $('faceHit'), wrap = $('faceWrap');
     const pupils = [...svg.querySelectorAll('.pupil')];
-    const EYES = [[62, 54], [138, 54]], VBW = 200, VBH = 124, REACH = 11;
+    const EYES = [[62, 54], [138, 54]], VB = [26, 18, 148, 98], REACH = 11; // VB matches the svg viewBox
     const EXPR = {
       awake: { eyes: 'open', mouth: 'smile' },
       asleep: { eyes: 'closed', mouth: 'sleep' },
@@ -796,7 +796,7 @@
       const r = svg.getBoundingClientRect();
       if (!r.width) return;
       setPupils(EYES.map(([ex, ey]) => {
-        const dx = x - (r.left + ex / VBW * r.width), dy = y - (r.top + ey / VBH * r.height);
+        const dx = x - (r.left + (ex - VB[0]) / VB[2] * r.width), dy = y - (r.top + (ey - VB[1]) / VB[3] * r.height);
         const d = Math.hypot(dx, dy) || 1, k = REACH * Math.min(1, d / 140);
         return [dx / d * k, dy / d * k];
       }));
