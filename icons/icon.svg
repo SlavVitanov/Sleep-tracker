@@ -5,8 +5,4 @@
     <path d="M274 246Q336 312 398 246"/>
   </g>
   <ellipse cx="256" cy="316" rx="15" ry="12" fill="#2b2622"/>
-  <g fill="none" stroke="#2b2622" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M356 118h40l-40 46h40" stroke-width="13"/>
-    <path d="M418 66h26l-26 30h26" stroke-width="9" opacity=".6"/>
-  </g>
 </svg>

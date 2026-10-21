@@ -156,21 +156,6 @@
     50% { transform: translate(-9px, 0); } 75% { transform: translate(0, -9px); } 100% { transform: translate(9px, 0); }
   }
 
-  .zzz { position: absolute; right: -14px; top: -6px; width: 30px; height: 50px; pointer-events: none; }
-  .zzz span {
-    position: absolute; left: 0; bottom: 0; font-weight: 900; color: var(--ink); opacity: 0;
-    font-size: 15px;
-  }
-  .zzz span:nth-child(2) { font-size: 19px; }
-  .zzz span:nth-child(3) { font-size: 24px; }
-  .snoozing .zzz span { animation: zfloat 3.6s ease-in infinite; }
-  .snoozing .zzz span:nth-child(2) { animation-delay: 1.2s; }
-  .snoozing .zzz span:nth-child(3) { animation-delay: 2.4s; }
-  @keyframes zfloat {
-    0% { opacity: 0; transform: translate(0, 0) rotate(-8deg); }
-    20% { opacity: .9; }
-    100% { opacity: 0; transform: translate(18px, -42px) rotate(8deg); }
-  }
 
   /* The cards live on a panel that slides up over the face */
   .app {
@@ -456,7 +441,6 @@
           </g>
         </g>
       </svg>
-      <div class="zzz" aria-hidden="true"><span>z</span><span>z</span><span>Z</span></div>
     </div>
   </div>
   <button class="avatar" id="avatar" aria-label="Settings"><span id="avatarLetter">S</span><i class="badge" id="syncBadge"></i></button>
@@ -754,7 +738,7 @@
   // The little character at the top. It sleeps while the baby sleeps and is awake and curious
   // otherwise: it blinks, glances around, looks where you tap and reacts to what you log.
   const Face = (() => {
-    const svg = $('face'), hit = $('faceHit'), wrap = $('faceWrap'), fz = $('fz');
+    const svg = $('face'), hit = $('faceHit'), wrap = $('faceWrap');
     const pupils = [...svg.querySelectorAll('.pupil')];
     const EYES = [[62, 54], [138, 54]], VBW = 200, VBH = 124, REACH = 11;
     const EXPR = {
@@ -779,7 +763,6 @@
       svg.dataset.eyes = e.eyes;
       svg.dataset.mouth = e.mouth;
       svg.classList.toggle('dizzy', !!e.dizzy);
-      fz.classList.toggle('snoozing', name === 'asleep');
       if (e.bounce) { svg.classList.remove('bounce'); void svg.getBoundingClientRect(); svg.classList.add('bounce'); }
     }
     const rest = () => (sleeping ? 'asleep' : 'awake');

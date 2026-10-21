@@ -2,7 +2,7 @@
 
 A small tracker for sleeps and feeds that lives on your phone's home screen and works like a normal app.
 
-- **A little face** at the top that keeps Sye company. It sleeps (with floating z's) while Sye sleeps, and is awake and curious otherwise.
+- **A little face** at the top that keeps Sye company. It sleeps while Sye sleeps, and is awake and curious otherwise.
   - It blinks, glances around and looks wherever you tap.
   - It yawns when a sleep starts and pops its eyes open on wake-up.
   - It smiles at feeds and chews when you log solids.
