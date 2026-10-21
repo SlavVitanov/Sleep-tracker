@@ -1,11 +1,14 @@
-# Sye's Sleep Tracker 🌙
+# Sye's Sleep & Feed Tracker 🌙🍼
 
-A small sleep tracker that lives on your phone's home screen and works like a normal app.
+A small tracker for sleeps and feeds that lives on your phone's home screen and works like a normal app.
 
 - **One big button**: tap *Start sleep* when the baby falls asleep and *Wake up* when they wake. The timer keeps going even if you close the app.
-- **Today at a glance**: total sleep, number of naps and the longest stretch.
+- **Feeds**: tap **Liquids** or **Solids** under the timer.
+  - **Liquids**: choose Milk, Formula or Water and optionally type the amount in ml, or tap a quick size. It remembers your last amount.
+  - **Solids**: type what was eaten (e.g. *potato, broccoli*) or tap suggestions. Suggestions learn from foods you've logged before.
+- **Today at a glance**: total sleep, number of naps and the longest stretch, plus time since the last drink, millilitres drunk today and the last meal.
 - **Bar chart**: daily sleep for the last 7, 14 or 30 days, split into night (purple) and naps (orange). Tap a bar to see that day.
-- **History**: tap any entry to fix the times or delete it. Use **+ Add** for sleeps you forgot to log.
+- **Timeline**: sleeps and feeds together, newest first, with each day's totals and the time between drinks. Tap any entry to change or delete it. Use **+ Add** for anything you forgot to log.
 - **Private**: all data stays on your phone, unless you turn on sync with your partner (optional, see below).
 - **Sync with your partner** (optional): log on either phone and see it on both.
 - **Works offline** once it has been opened once.
@@ -61,7 +64,7 @@ Open it from the new home-screen icon from now on. It opens full screen like a r
 
 Sync lets you and your partner log on either phone and see the same log on both, live. It uses **Firebase**, Google's free app database. You set it up once, which takes about 10 minutes. A computer makes it easier, but a phone works too.
 
-**Cost:** free. Firebase's free "Spark" plan doesn't need a card, and a sleep log uses a tiny fraction of its limits.
+**Cost:** free. Firebase's free "Spark" plan doesn't need a card, and a baby log uses a tiny fraction of its limits.
 
 **Privacy:** the log is stored in your own Firebase project. Your two phones share a random 20-character **family code**, which works like a password. Anyone who has the code can see and change the log, so keep it between the two of you.
 
@@ -111,7 +114,7 @@ Wait a minute or two for the website to update. Then close the app on your phone
 2. Tap the **round initial** → **Sync with partner** → **I have a code**.
 3. Paste the code (pasting the whole message works too) and tap **Join**.
 
-That's it. A **green dot** on the round initial means everything is synced. Sleeps that were already on either phone are kept and merged.
+That's it. A **green dot** on the round initial means everything is synced. Sleeps and feeds that were already on either phone are kept and merged.
 
 | Dot on the initial | Meaning |
 |---|---|
