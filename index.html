@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>Sleep</title>
 <meta name="description" content="A tiny sleep tracker for your little one.">
-<meta name="theme-color" content="#322b63" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#f9cfa9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#13132a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#fbf6f0" media="(prefers-color-scheme: light)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -45,10 +45,8 @@
     --sheet-bg: #fffdfa;
     --scrim: rgba(40, 25, 10, 0.32);
     --radius: 26px;
-    /* the face at the top: --band is its background, --ink its lines, --mouth its open mouth */
+    /* the face at the top: --ink is its lines, --mouth its open mouth */
     --fz-h: max(176px, 25vh);
-    --band: #f9cfa9;
-    --glow: #fde2c6;
     --ink: #2b2622;
     --mouth: #2b2622;
     --blush: #ff8f7e;
@@ -56,7 +54,6 @@
     color-scheme: light;
   }
   @supports (height: 1svh) { :root { --fz-h: max(176px, 25svh); } }
-  :root.night { --band: #5b55c8; --glow: #6c66d6; --ink: #1d1a45; --mouth: #1d1a45; --blush: #b3a6ff; }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #13132a;
@@ -77,18 +74,15 @@
       --shadow: none;
       --sheet-bg: #1e1e3b;
       --scrim: rgba(5, 5, 20, 0.6);
-      --band: #322b63;
-      --glow: #3d3676;
       --ink: #f6f1ea;
-      --mouth: #100e26;
+      --mouth: #f6f1ea;
       --blush: #ff8fa0;
       color-scheme: dark;
     }
-    :root.night { --band: #191838; --glow: #24224d; --ink: #d4d0ff; --mouth: #d4d0ff; --blush: #8f86e6; }
   }
 
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html { background: var(--band); transition: background-color 1.2s ease; }
+  html { background: var(--bg); }
   html, body { margin: 0; color: var(--text); }
   body {
     font-family: "Nunito", ui-rounded, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
@@ -104,22 +98,8 @@
   /* ---------- Face zone (fixed behind the cards) ---------- */
   .fz {
     position: fixed; top: 0; left: 0; right: 0; height: var(--fz-h); z-index: 0;
-    overflow: hidden; background: var(--band); transition: background-color 1.2s ease;
+    overflow: hidden; background: var(--bg);
   }
-  .fz-glow {
-    position: absolute; left: 50%; top: calc(env(safe-area-inset-top) + (var(--fz-h) - env(safe-area-inset-top) - 28px) / 2);
-    width: 300px; height: 300px; margin: -150px 0 0 -150px; border-radius: 50%;
-    background: var(--glow); opacity: .7; transition: background-color 1.2s ease;
-  }
-  .stars i {
-    position: absolute; width: 4px; height: 4px; border-radius: 50%; background: #fff6d8;
-    opacity: 0; transition: opacity 1.2s ease;
-  }
-  .stars i:nth-child(3n) { width: 3px; height: 3px; }
-  .night .stars i { opacity: .85; animation: twinkle 3s ease-in-out infinite; }
-  .night .stars i:nth-child(2n) { animation-delay: -1.3s; }
-  .night .stars i:nth-child(3n) { animation-delay: -2.1s; animation-duration: 4s; }
-  @keyframes twinkle { 50% { opacity: .25; transform: scale(.6); } }
   .face-wrap {
     position: absolute; left: 0; right: 0; top: env(safe-area-inset-top); bottom: 28px;
     display: grid; place-items: center; will-change: transform, opacity;
@@ -132,8 +112,8 @@
     width: 40px; height: 40px; border-radius: 50%;
     display: grid; place-items: center;
     font-weight: 800; font-size: 16px; color: var(--text);
-    background: color-mix(in srgb, var(--card) 70%, transparent);
-    transition: transform .2s ease, background-color 1.2s ease;
+    background: var(--card); box-shadow: var(--shadow);
+    transition: transform .2s ease;
   }
   .avatar:active { transform: scale(0.92); }
 
@@ -147,10 +127,9 @@
 
   .face .white { fill: #fff; }
   .face .pupil { fill: #1e1b18; transition: transform .28s cubic-bezier(.3, .7, .2, 1); }
-  .face .shine { fill: #fff; }
   .face .open { transform-box: fill-box; transform-origin: 50% 50%; transition: transform .14s ease, opacity .14s ease; }
-  .face .shut, .face .happy, .face .line { fill: none; stroke: var(--ink); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; transition: stroke 1.2s ease; }
-  .face .shut, .face .happy { opacity: 0; transition: opacity .15s ease, stroke 1.2s ease; }
+  .face .shut, .face .happy, .face .line { fill: none; stroke: var(--ink); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+  .face .shut, .face .happy { opacity: 0; transition: opacity .15s ease; }
   .face[data-eyes=closed] .open, .face[data-eyes=happy] .open,
   .face[data-eyes=wink] .R .open, .face[data-eyes=peek] .R .open { transform: scaleY(.05); opacity: 0; }
   .face[data-eyes=closed] .shut, .face[data-eyes=peek] .R .shut,
@@ -160,7 +139,7 @@
   .face.blink[data-eyes=open] .open, .face.blink[data-eyes=wide] .open { transform: scaleY(.06); }
 
   .face .m { opacity: 0; transform-box: fill-box; transform-origin: 50% 30%; transform: scale(.5); transition: opacity .15s ease, transform .22s cubic-bezier(.3, 1.4, .5, 1); }
-  .face .fill { fill: var(--mouth); transition: fill 1.2s ease; }
+  .face .fill { fill: var(--mouth); }
   .face .tongue { fill: var(--tongue); }
   .face[data-mouth=smile] .smile, .face[data-mouth=laugh] .laugh, .face[data-mouth=o] .o,
   .face[data-mouth=yawn] .yawn, .face[data-mouth=blep] .blep, .face[data-mouth=chew] .chew,
@@ -168,12 +147,12 @@
   .face[data-mouth=chew] .chew { animation: chew .3s ease-in-out infinite alternate; }
   .face[data-mouth=yawn] .yawn { animation: yawn 1.4s ease-in-out; }
   .night .face[data-mouth=sleep] .sleep { animation: snore 4.5s ease-in-out infinite; }
-  .face .sleep { fill: var(--ink); transition: fill 1.2s ease; }
+  .face .sleep { fill: var(--ink); }
   @keyframes chew { from { transform: scaleY(.35); } to { transform: scaleY(1); } }
   @keyframes yawn { 0% { transform: scale(.4); } 60% { transform: scale(1.1, 1.2); } 100% { transform: scale(1); } }
   @keyframes snore { 50% { transform: scale(1.35); } }
 
-  .face .blush { fill: var(--blush); opacity: 0; transition: opacity .4s ease, fill 1.2s ease; }
+  .face .blush { fill: var(--blush); opacity: 0; transition: opacity .4s ease; }
   .face.blushing .blush { opacity: .55; }
   .face.dizzy .pupil { animation: dizzy .45s linear infinite; }
   @keyframes dizzy {
@@ -184,7 +163,7 @@
   .zzz { position: absolute; right: -14px; top: -6px; width: 30px; height: 50px; pointer-events: none; }
   .zzz span {
     position: absolute; left: 0; bottom: 0; font-weight: 900; color: var(--ink); opacity: 0;
-    font-size: 15px; transition: color 1.2s ease;
+    font-size: 15px;
   }
   .zzz span:nth-child(2) { font-size: 19px; }
   .zzz span:nth-child(3) { font-size: 24px; }
@@ -365,7 +344,7 @@
   /* ---------- Sync ---------- */
   .avatar .badge {
     position: absolute; right: -1px; bottom: -1px; width: 13px; height: 13px; border-radius: 50%;
-    border: 2.5px solid var(--band); display: none;
+    border: 2.5px solid var(--bg); display: none;
   }
   .sdot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); display: inline-block; flex-shrink: 0; }
   .s-live { background: var(--good); }
@@ -445,12 +424,6 @@
 </head>
 <body>
 <div class="fz" id="fz">
-  <div class="fz-glow"></div>
-  <div class="stars" aria-hidden="true">
-    <i style="left:9%;top:34%"></i><i style="left:21%;top:62%"></i><i style="left:30%;top:28%"></i>
-    <i style="left:72%;top:30%"></i><i style="left:80%;top:58%"></i><i style="left:90%;top:40%"></i>
-    <i style="left:15%;top:48%"></i><i style="left:62%;top:66%"></i>
-  </div>
   <div class="face-wrap" id="faceWrap">
     <div class="face-hit" id="faceHit">
       <svg class="face" id="face" viewBox="0 0 200 124" data-eyes="open" data-mouth="smile" aria-hidden="true">
@@ -465,7 +438,7 @@
           <g class="eye L">
             <g class="open">
               <circle class="white" cx="62" cy="54" r="30"/>
-              <g clip-path="url(#clipL)"><g class="pupil"><circle cx="62" cy="54" r="19"/><circle class="shine" cx="55" cy="46" r="5"/></g></g>
+              <g clip-path="url(#clipL)"><g class="pupil"><circle cx="62" cy="54" r="19"/></g></g>
             </g>
             <path class="shut" d="M40 52Q62 74 84 52"/>
             <path class="happy" d="M40 62Q62 34 84 62"/>
@@ -473,7 +446,7 @@
           <g class="eye R">
             <g class="open">
               <circle class="white" cx="138" cy="54" r="30"/>
-              <g clip-path="url(#clipR)"><g class="pupil"><circle cx="138" cy="54" r="19"/><circle class="shine" cx="131" cy="46" r="5"/></g></g>
+              <g clip-path="url(#clipR)"><g class="pupil"><circle cx="138" cy="54" r="19"/></g></g>
             </g>
             <path class="shut" d="M116 52Q138 74 160 52"/>
             <path class="happy" d="M116 62Q138 34 160 62"/>
@@ -837,8 +810,6 @@
       if (v === sleeping) return;
       sleeping = v;
       document.documentElement.classList.toggle('night', v);
-      const band = getComputedStyle(document.documentElement).getPropertyValue('--band').trim();
-      document.querySelectorAll('meta[name=theme-color]').forEach(m => { m.content = band; });
       if (!playing) apply(rest());
     }
 
