@@ -46,13 +46,13 @@
     --scrim: rgba(40, 25, 10, 0.32);
     --radius: 26px;
     /* the face at the top: --ink is its lines, --mouth its open mouth */
-    --fz-h: max(176px, 25vh);
+    --fz-h: max(176px, 27vh);
     --ink: #2b2622;
     --mouth: #2b2622;
     --tongue: #ff7fa8;
     color-scheme: light;
   }
-  @supports (height: 1svh) { :root { --fz-h: max(176px, 25svh); } }
+  @supports (height: 1svh) { :root { --fz-h: max(176px, 27svh); } }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #13132a;
@@ -102,7 +102,7 @@
     position: absolute; left: 0; right: 0; top: env(safe-area-inset-top); bottom: 28px;
     display: grid; place-items: center; will-change: transform, opacity;
   }
-  .face-hit { position: relative; height: min(132px, 88%); aspect-ratio: 200 / 124; cursor: pointer; }
+  .face-hit { position: relative; height: min(142px, 86%); aspect-ratio: 148 / 98; cursor: pointer; }
   .face { width: 100%; height: 100%; overflow: visible; display: block; }
 
   .avatar {
@@ -171,22 +171,12 @@
 
   /* ---------- Hero ---------- */
   .hero {
-    position: relative; overflow: hidden;
-    border-radius: 28px; padding: 22px 20px 20px;
+    position: relative;
+    border-radius: 28px; padding: 24px 20px 20px;
     background: var(--card); box-shadow: var(--shadow);
-    isolation: isolate;
+    text-align: center;
   }
-  .hero::before {
-    content: ""; position: absolute; inset: -40% -20% auto auto;
-    width: 280px; height: 280px; border-radius: 50%;
-    background: radial-gradient(circle, rgba(255, 138, 61, 0.16), transparent 65%);
-    z-index: -1; transition: background .6s ease, transform .8s ease;
-  }
-  .hero.sleeping::before {
-    background: radial-gradient(circle, rgba(106, 98, 224, 0.30), transparent 65%);
-    transform: scale(1.25);
-  }
-  .status { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--muted); }
+  .status { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--muted); }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--nap); position: relative; }
   .sleeping .dot { background: var(--night-2); }
   .sleeping .dot::after {
@@ -195,10 +185,10 @@
   }
   @keyframes ping { 0% { transform: scale(.5); opacity: .8; } 100% { transform: scale(1.8); opacity: 0; } }
   .timer {
-    font-size: 54px; font-weight: 800; letter-spacing: -0.01em; line-height: 1;
-    margin: 14px 0 6px; font-variant-numeric: tabular-nums;
+    font-size: clamp(48px, 18.6vw, 80px); font-weight: 900; letter-spacing: -0.02em; line-height: 1;
+    margin: 18px 0 10px; font-variant-numeric: tabular-nums; white-space: nowrap;
   }
-  .timer small { font-size: 26px; letter-spacing: -0.01em; color: var(--muted); font-weight: 700; }
+  .timer small { font-size: .45em; letter-spacing: -0.01em; color: var(--muted); font-weight: 700; }
   .timer .sec { color: var(--faint); }
   .sub { font-size: 14px; color: var(--muted); min-height: 20px; }
   .sub button { color: var(--night); font-weight: 700; }
@@ -407,7 +397,7 @@
 <div class="fz" id="fz">
   <div class="face-wrap" id="faceWrap">
     <div class="face-hit" id="faceHit">
-      <svg class="face" id="face" viewBox="0 0 200 124" data-eyes="open" data-mouth="smile" aria-hidden="true">
+      <svg class="face" id="face" viewBox="26 18 148 98" data-eyes="open" data-mouth="smile" aria-hidden="true">
         <defs>
           <clipPath id="clipL"><circle cx="62" cy="54" r="30"/></clipPath>
           <clipPath id="clipR"><circle cx="138" cy="54" r="30"/></clipPath>
@@ -743,7 +733,7 @@
   const Face = (() => {
     const svg = $('face'), hit = $('faceHit'), wrap = $('faceWrap');
     const pupils = [...svg.querySelectorAll('.pupil')];
-    const EYES = [[62, 54], [138, 54]], VBW = 200, VBH = 124, REACH = 11;
+    const EYES = [[62, 54], [138, 54]], VB = [26, 18, 148, 98], REACH = 11; // VB matches the svg viewBox
     const EXPR = {
       awake: { eyes: 'open', mouth: 'smile' },
       asleep: { eyes: 'closed', mouth: 'sleep' },
@@ -806,7 +796,7 @@
       const r = svg.getBoundingClientRect();
       if (!r.width) return;
       setPupils(EYES.map(([ex, ey]) => {
-        const dx = x - (r.left + ex / VBW * r.width), dy = y - (r.top + ey / VBH * r.height);
+        const dx = x - (r.left + (ex - VB[0]) / VB[2] * r.width), dy = y - (r.top + (ey - VB[1]) / VB[3] * r.height);
         const d = Math.hypot(dx, dy) || 1, k = REACH * Math.min(1, d / 140);
         return [dx / d * k, dy / d * k];
       }));
