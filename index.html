@@ -49,7 +49,6 @@
     --fz-h: max(176px, 27vh);
     --ink: #2b2622;
     --mouth: #2b2622;
-    --tongue: #ff7fa8;
     color-scheme: light;
   }
   @supports (height: 1svh) { :root { --fz-h: max(176px, 27svh); } }
@@ -118,29 +117,28 @@
   /* Face parts. data-eyes / data-mouth on the svg pick which shapes show. */
   .face .body { transform-box: view-box; transform-origin: 50% 60%; animation: bob 5s ease-in-out infinite; }
   .night .face .body { animation: breathe 4.5s ease-in-out infinite; }
-  .face.bounce .body { animation: hop .5s cubic-bezier(.3, 1.6, .5, 1); }
   @keyframes bob { 50% { transform: translateY(-2.5px); } }
   @keyframes breathe { 50% { transform: translateY(1.5px) scale(1.03); } }
-  @keyframes hop { 40% { transform: translateY(-7px) scale(1.04, .97); } 70% { transform: translateY(1px) scale(.98, 1.02); } }
 
   .face .white { fill: #fff; }
   .face .pupil { fill: #1e1b18; transition: transform .28s cubic-bezier(.3, .7, .2, 1); }
+  .face .pupil circle { transform-box: fill-box; transform-origin: 50% 50%; transition: transform .3s cubic-bezier(.3, 1.4, .5, 1); }
+  .face.big .pupil circle { transform: scale(1.3); }
   .face .open { transform-box: fill-box; transform-origin: 50% 50%; transition: transform .14s ease, opacity .14s ease; }
   .face .shut, .face .happy, .face .line { fill: none; stroke: var(--ink); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
   .face .shut, .face .happy { opacity: 0; transition: opacity .15s ease; }
   .face[data-eyes=closed] .open, .face[data-eyes=happy] .open,
-  .face[data-eyes=wink] .R .open, .face[data-eyes=peek] .R .open { transform: scaleY(.05); opacity: 0; }
+  .face[data-eyes=peek] .R .open { transform: scaleY(.05); opacity: 0; }
   .face[data-eyes=closed] .shut, .face[data-eyes=peek] .R .shut,
-  .face[data-eyes=happy] .happy, .face[data-eyes=wink] .R .happy { opacity: 1; }
+  .face[data-eyes=happy] .happy { opacity: 1; }
   .face[data-eyes=peek] .L .open { transform: scaleY(.5); }
   .face[data-eyes=wide] .open { transform: scale(1.12); }
   .face.blink[data-eyes=open] .open, .face.blink[data-eyes=wide] .open { transform: scaleY(.06); }
 
   .face .m { opacity: 0; transform-box: fill-box; transform-origin: 50% 30%; transform: scale(.5); transition: opacity .15s ease, transform .22s cubic-bezier(.3, 1.4, .5, 1); }
   .face .fill { fill: var(--mouth); }
-  .face .tongue { fill: var(--tongue); }
-  .face[data-mouth=smile] .smile, .face[data-mouth=laugh] .laugh, .face[data-mouth=o] .o,
-  .face[data-mouth=yawn] .yawn, .face[data-mouth=blep] .blep, .face[data-mouth=chew] .chew,
+  .face[data-mouth=smile] .smile, .face[data-mouth=o] .o,
+  .face[data-mouth=yawn] .yawn, .face[data-mouth=chew] .chew,
   .face[data-mouth=sleep] .sleep { opacity: 1; transform: none; }
   .face[data-mouth=chew] .chew { animation: chew .3s ease-in-out infinite alternate; }
   .face[data-mouth=yawn] .yawn { animation: yawn 1.4s ease-in-out; }
@@ -415,7 +413,6 @@
         <defs>
           <clipPath id="clipL"><circle cx="62" cy="54" r="30"/></clipPath>
           <clipPath id="clipR"><circle cx="138" cy="54" r="30"/></clipPath>
-          <clipPath id="clipMouth"><path d="M80 92H120Q120 120 100 120Q80 120 80 92Z"/></clipPath>
         </defs>
         <g class="body">
           <g class="eye L">
@@ -436,10 +433,8 @@
           </g>
           <g transform="translate(0 -9)">
             <path class="m smile line" d="M87 97Q100 110 113 97"/>
-            <g class="m laugh"><path class="fill" d="M80 92H120Q120 120 100 120Q80 120 80 92Z"/><ellipse class="tongue" clip-path="url(#clipMouth)" cx="100" cy="121" rx="14" ry="9"/></g>
             <ellipse class="m o fill" cx="100" cy="102" rx="7" ry="8.5"/>
             <ellipse class="m yawn fill" cx="100" cy="104" rx="10" ry="14"/>
-            <g class="m blep"><path class="tongue" d="M94 100v6a6 6 0 0 0 12 0v-6Z"/><path class="line" d="M87 97Q100 108 113 97"/></g>
             <ellipse class="m chew fill" cx="100" cy="101" rx="9" ry="6"/>
             <ellipse class="m sleep" cx="100" cy="101" rx="4.5" ry="3.5"/>
           </g>
@@ -750,24 +745,18 @@
       asleep: { eyes: 'closed', mouth: 'sleep' },
       peek: { eyes: 'peek', mouth: 'sleep' },
       yawn: { eyes: 'happy', mouth: 'yawn' },
-      happy: { eyes: 'happy', mouth: 'laugh', bounce: true },
-      giggle: { eyes: 'happy', mouth: 'laugh', bounce: true },
-      wink: { eyes: 'wink', mouth: 'blep' },
-      blep: { eyes: 'open', mouth: 'blep' },
-      content: { eyes: 'happy', mouth: 'smile' },
-      yum: { eyes: 'happy', mouth: 'chew' },
+      yum: { eyes: 'open', mouth: 'chew' },
       surprised: { eyes: 'wide', mouth: 'o' },
       dizzy: { eyes: 'open', mouth: 'o', dizzy: true }
     };
     const SLEEPY = new Set(['asleep', 'peek']);
-    let sleeping = null, playing = false, stepTimer = null, holdUntil = 0, taps = [], turn = 0, dizzyUntil = 0;
+    let sleeping = null, playing = false, stepTimer = null, holdUntil = 0, taps = [], dizzyUntil = 0;
 
     function apply(name) {
       const e = EXPR[name];
       svg.dataset.eyes = e.eyes;
       svg.dataset.mouth = e.mouth;
       svg.classList.toggle('dizzy', !!e.dizzy);
-      if (e.bounce) { svg.classList.remove('bounce'); void svg.getBoundingClientRect(); svg.classList.add('bounce'); }
     }
     const rest = () => (sleeping ? 'asleep' : 'awake');
 
@@ -788,6 +777,12 @@
     // For reactions after a sheet closes, so the face is in view.
     const later = (steps, ms = 220) => setTimeout(() => play(steps), ms);
 
+    // Wide-eyed (pupils 30% bigger) while a feed is being logged.
+    function setBig(v) {
+      svg.classList.toggle('big', v);
+      if (v) { holdUntil = 0; restGaze(); } // big pupils stay centred so they fit the eyes
+    }
+
     function setSleeping(v) {
       if (v === sleeping) return;
       sleeping = v;
@@ -800,8 +795,7 @@
     }
     function restGaze() {
       if (Date.now() < holdUntil) return;
-      const down = 5 + 5 * Math.min(1, Math.max(0, scrollY) / 240); // looks down at the cards, more as you scroll
-      setPupils([[0, down], [0, down]]);
+      setPupils([[0, 0], [0, 0]]); // looking straight ahead
     }
     function lookAt(x, y, ms = 1600) {
       const r = svg.getBoundingClientRect();
@@ -841,8 +835,8 @@
       taps = taps.filter(t => now - t < 2500).concat(now);
       buzz(8);
       if (sleeping) return play([['peek', 900]]);
-      if (taps.length >= 5) { taps = []; dizzyUntil = now + 1500; return play([['dizzy', 1500], ['giggle', 800]]); }
-      play([[['giggle', 'wink', 'blep'][turn++ % 3], 1200]]);
+      if (taps.length >= 5) { taps = []; dizzyUntil = now + 1500; return play([['dizzy', 1500]]); }
+      play([['surprised', 900]]);
     }
     document.addEventListener('pointerdown', e => {
       if (hit.contains(e.target)) tapFace();
@@ -863,7 +857,7 @@
     }, { passive: true });
 
     restGaze();
-    return { setSleeping, play, later, lookAt };
+    return { setSleeping, setBig, play, later, lookAt };
   })();
 
   // ---------- Hero ----------
@@ -917,7 +911,7 @@
 
   $('mainBtn').addEventListener('click', () => {
     const now = Date.now();
-    if (state.active) Face.play([['surprised', 650], ['giggle', 1100]], true);
+    if (state.active) Face.play([['surprised', 1000]], true);
     else Face.play([['yawn', 1500]]);
     if (state.active) {
       const start = state.active;
@@ -1270,12 +1264,11 @@
       const x = state.feeds.find(y => y.id === feedEditing);
       if (x) { Object.assign(x, f); touch('feeds', x); }
       save(); hide(); buzz(10); renderAll();
-      Face.later([['content', 900]]);
       return toast('Saved');
     }
     const x = addEntry('feeds', { id: uid(), ...f });
     save(); hide(); buzz([12, 60, 12]); renderAll();
-    Face.later(f.type === 'solid' ? [['yum', 1600], ['content', 600]] : [['content', 1400]]);
+    if (f.type === 'solid') Face.later([['yum', 1600]]);
     const what = f.type === 'milk' ? (f.ml ? `${f.ml} ml ${f.what.toLowerCase()}` : f.what.toLowerCase()) : `${f.what || 'solids'}${f.ml ? ` · ${f.ml} g` : ''}`;
     toast(`Logged ${what}`.slice(0, 40), () => { removeEntry('feeds', x.id); save(); renderAll(); });
   });
@@ -1288,7 +1281,7 @@
   });
   document.querySelectorAll('.qa[data-feed]').forEach(b => b.addEventListener('click', () => {
     buzz(8);
-    Face.play([['happy', 1300]]);
+    Face.setBig(true);
     openFeed(b.dataset.feed);
   }));
 
@@ -1396,6 +1389,7 @@
     $('scrim').classList.remove('open');
     document.activeElement && document.activeElement.blur();
     openSheet = null;
+    Face.setBig(false);
   }
   $('scrim').addEventListener('click', hide);
 
@@ -1486,7 +1480,6 @@
       addEntry('sleeps', { id: uid(), start: s, end: Math.min(e, Date.now()) });
     }
     save(); hide(); buzz(10); renderAll();
-    Face.later([['content', 900]]);
     toast('Saved');
   });
 
@@ -1592,7 +1585,7 @@
     $('toastText').textContent = text;
     const b = $('toastBtn');
     b.hidden = !undo;
-    b.onclick = () => { undo && undo(); $('toast').classList.remove('show'); buzz(8); Face.later([['giggle', 900]], 60); };
+    b.onclick = () => { undo && undo(); $('toast').classList.remove('show'); buzz(8); };
     $('toast').classList.add('show');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(() => $('toast').classList.remove('show'), undo ? 4500 : 2200);
