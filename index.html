@@ -99,7 +99,14 @@
   }
   .face-wrap {
     position: absolute; left: 0; right: 0; top: env(safe-area-inset-top); bottom: 28px;
-    display: grid; place-items: center; will-change: transform, opacity;
+    display: grid; place-items: center; will-change: transform;
+  }
+  /* The face drifts up and shrinks a little as the cards slide over it. This is a CSS
+     scroll-driven animation, so it runs in step with scrolling instead of lagging behind it
+     (a JS scroll handler made the eyes stutter on iPhone). Browsers without it keep the face still. */
+  @supports (animation-timeline: scroll()) {
+    .face-wrap { animation: face-drift linear both; animation-timeline: scroll(root); animation-range: 0 300px; }
+    @keyframes face-drift { to { transform: translateY(-90px) scale(.8); } }
   }
   .face-hit { position: relative; height: min(142px, 86%); aspect-ratio: 148 / 98; cursor: pointer; }
   .face { width: 100%; height: 100%; overflow: visible; display: block; }
@@ -703,7 +710,7 @@
   // flat lid cuts. It sleeps while the baby sleeps, gets drowsier the longer the baby has
   // been awake (1.5h, 2h, 2.5h), and reacts to taps and feeds.
   const Face = (() => {
-    const svg = $('face'), hit = $('faceHit'), wrap = $('faceWrap');
+    const svg = $('face'), hit = $('faceHit');
     const EYE = { L: [62, 54], R: [138, 54] }, ER = 30, VB = [26, 18, 148, 98], REACH = 11;
     const el = (id) => document.getElementById(id);
     const parts = { L: { lid: el('lidL'), g: el('eyeL'), pup: el('pupL'), shut: el('shutL') },
@@ -867,18 +874,6 @@
       if (hit.contains(e.target)) tapFace();
       else lookAt(e.clientX, e.clientY);
     }, { capture: true, passive: true });
-
-    // The face drifts up and shrinks a little as the cards slide over it.
-    let ticking = false;
-    addEventListener('scroll', () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        ticking = false;
-        const y = Math.max(0, scrollY);
-        wrap.style.transform = `translateY(${(-y * 0.3).toFixed(1)}px) scale(${(1 - Math.min(y, 300) / 1500).toFixed(3)})`;
-      });
-    }, { passive: true });
 
     rest();
     return { setState, setBig, react, later, lookAt };
