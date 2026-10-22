@@ -701,7 +701,7 @@
   // The little character at the top, animated frame by frame like a sprite sheet: every
   // change is a few quick, discrete frames (no tweening or squashing). Eyes are round with
   // flat lid cuts. It sleeps while the baby sleeps, gets drowsier the longer the baby has
-  // been awake (2h, 2.5h, 3h), and reacts to taps and feeds.
+  // been awake (1.5h, 2h, 2.5h), and reacts to taps and feeds.
   const Face = (() => {
     const svg = $('face'), hit = $('faceHit'), wrap = $('faceWrap');
     const EYE = { L: [62, 54], R: [138, 54] }, ER = 30, VB = [26, 18, 148, 98], REACH = 11;
@@ -798,7 +798,7 @@
     // Mood from the baby's state: asleep, or how long they've been awake.
     function setState(sleeping, awakeMs) {
       const next = sleeping ? 'asleep'
-        : awakeMs >= 3 * HOUR ? 'drowsy3' : awakeMs >= 2.5 * HOUR ? 'drowsy2' : awakeMs >= 2 * HOUR ? 'drowsy1' : 'awake';
+        : awakeMs >= 2.5 * HOUR ? 'drowsy3' : awakeMs >= 2 * HOUR ? 'drowsy2' : awakeMs >= 1.5 * HOUR ? 'drowsy1' : 'awake';
       if (next === mood && svg.dataset.expr) return;
       mood = next;
       document.documentElement.classList.toggle('night', mood === 'asleep');
