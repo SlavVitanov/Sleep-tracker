@@ -114,46 +114,17 @@
   }
   .avatar:active { transform: scale(0.92); }
 
-  /* Face parts. data-eyes / data-mouth on the svg pick which shapes show. */
-  .face .body { transform-box: view-box; transform-origin: 50% 60%; animation: bob 5s ease-in-out infinite; }
-  .night .face .body { animation: breathe 4.5s ease-in-out infinite; }
-  @keyframes bob { 50% { transform: translateY(-2.5px); } }
-  @keyframes breathe { 50% { transform: translateY(1.5px) scale(1.03); } }
-
+  /* Face parts. The face is drawn frame by frame from JS (no tweening): lids are flat cuts
+     across round eyes, and the mouth swaps between fixed shapes via data-mouth. */
   .face .white { fill: #fff; }
-  .face .pupil { fill: #1e1b18; transition: transform .28s cubic-bezier(.3, .7, .2, 1); }
-  .face .pupil circle { transform-box: fill-box; transform-origin: 50% 50%; transition: transform .3s cubic-bezier(.3, 1.4, .5, 1); }
-  .face.big .pupil circle { transform: scale(1.18); }
-  .face .open { transform-box: fill-box; transform-origin: 50% 50%; transition: transform .14s ease, opacity .14s ease; }
-  .face .shut, .face .happy, .face .line { fill: none; stroke: var(--ink); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
-  .face .shut, .face .happy { opacity: 0; transition: opacity .15s ease; }
-  .face[data-eyes=closed] .open, .face[data-eyes=happy] .open,
-  .face[data-eyes=peek] .R .open { transform: scaleY(.05); opacity: 0; }
-  .face[data-eyes=closed] .shut, .face[data-eyes=peek] .R .shut,
-  .face[data-eyes=happy] .happy { opacity: 1; }
-  .face[data-eyes=peek] .L .open { transform: scaleY(.5); }
-  .face[data-eyes=wide] .open { transform: scale(1.12); }
-  .face.blink[data-eyes=open] .open, .face.blink[data-eyes=wide] .open { transform: scaleY(.06); }
-
-  .face .m { opacity: 0; transform-box: fill-box; transform-origin: 50% 30%; transform: scale(.5); transition: opacity .15s ease, transform .22s cubic-bezier(.3, 1.4, .5, 1); }
+  .face .pupil { fill: #1e1b18; }
+  .face .shut, .face .line { fill: none; stroke: var(--ink); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
   .face .fill { fill: var(--mouth); }
-  .face[data-mouth=smile] .smile, .face[data-mouth=o] .o,
-  .face[data-mouth=yawn] .yawn, .face[data-mouth=chew] .chew,
-  .face[data-mouth=sleep] .sleep { opacity: 1; transform: none; }
-  .face[data-mouth=chew] .chew { animation: chew .3s ease-in-out infinite alternate; }
-  .face[data-mouth=yawn] .yawn { animation: yawn 1.4s ease-in-out; }
-  .night .face[data-mouth=sleep] .sleep { animation: snore 4.5s ease-in-out infinite; }
-  .face .sleep { fill: var(--ink); }
-  @keyframes chew { from { transform: scaleY(.35); } to { transform: scaleY(1); } }
-  @keyframes yawn { 0% { transform: scale(.4); } 60% { transform: scale(1.1, 1.2); } 100% { transform: scale(1); } }
-  @keyframes snore { 50% { transform: scale(1.35); } }
-
-  .face.dizzy .pupil { animation: dizzy .45s linear infinite; }
-  @keyframes dizzy {
-    0% { transform: translate(9px, 0); } 25% { transform: translate(0, 9px); }
-    50% { transform: translate(-9px, 0); } 75% { transform: translate(0, -9px); } 100% { transform: translate(9px, 0); }
-  }
-
+  .face .m { display: none; }
+  .face[data-mouth=smile] .m-smile, .face[data-mouth=flat] .m-flat, .face[data-mouth=o] .m-o,
+  .face[data-mouth=yawn1] .m-yawn1, .face[data-mouth=yawn2] .m-yawn2,
+  .face[data-mouth=chew1] .m-chew1, .face[data-mouth=chew2] .m-flat,
+  .face[data-mouth=sleep] .m-sleep, .face[data-mouth=sleep2] .m-sleep2 { display: inline; }
 
   /* The cards live on a panel that slides up over the face */
   .app {
@@ -409,36 +380,29 @@
 <div class="fz" id="fz">
   <div class="face-wrap" id="faceWrap">
     <div class="face-hit" id="faceHit">
-      <svg class="face" id="face" viewBox="26 18 148 98" data-eyes="open" data-mouth="smile" aria-hidden="true">
+      <svg class="face" id="face" viewBox="26 18 148 98" data-expr="awake" data-mouth="smile" aria-hidden="true">
         <defs>
-          <clipPath id="clipL"><circle cx="62" cy="54" r="30"/></clipPath>
-          <clipPath id="clipR"><circle cx="138" cy="54" r="30"/></clipPath>
+          <clipPath id="eyeClipL"><circle cx="62" cy="54" r="30"/></clipPath>
+          <clipPath id="eyeClipR"><circle cx="138" cy="54" r="30"/></clipPath>
+          <clipPath id="lidClipL"><rect id="lidL" x="30" y="24" width="64" height="60"/></clipPath>
+          <clipPath id="lidClipR"><rect id="lidR" x="106" y="24" width="64" height="60"/></clipPath>
         </defs>
-        <g class="body">
-          <g class="eye L">
-            <g class="open">
-              <circle class="white" cx="62" cy="54" r="30"/>
-              <g clip-path="url(#clipL)"><g class="pupil"><circle cx="62" cy="54" r="20.9"/></g></g>
-            </g>
-            <path class="shut" d="M40 52Q62 74 84 52"/>
-            <path class="happy" d="M40 62Q62 34 84 62"/>
-          </g>
-          <g class="eye R">
-            <g class="open">
-              <circle class="white" cx="138" cy="54" r="30"/>
-              <g clip-path="url(#clipR)"><g class="pupil"><circle cx="138" cy="54" r="20.9"/></g></g>
-            </g>
-            <path class="shut" d="M116 52Q138 74 160 52"/>
-            <path class="happy" d="M116 62Q138 34 160 62"/>
-          </g>
-          <g transform="translate(0 -9)">
-            <path class="m smile line" d="M87 97Q100 110 113 97"/>
-            <ellipse class="m o fill" cx="100" cy="102" rx="7" ry="8.5"/>
-            <ellipse class="m yawn fill" cx="100" cy="104" rx="10" ry="14"/>
-            <ellipse class="m chew fill" cx="100" cy="101" rx="9" ry="6"/>
-            <ellipse class="m sleep" cx="100" cy="101" rx="4.5" ry="3.5"/>
-          </g>
-        </g>
+        <g clip-path="url(#lidClipL)"><g id="eyeL" clip-path="url(#eyeClipL)">
+          <circle class="white" cx="62" cy="54" r="30"/><circle class="pupil" id="pupL" cx="62" cy="54" r="20.9"/>
+        </g></g>
+        <g clip-path="url(#lidClipR)"><g id="eyeR" clip-path="url(#eyeClipR)">
+          <circle class="white" cx="138" cy="54" r="30"/><circle class="pupil" id="pupR" cx="138" cy="54" r="20.9"/>
+        </g></g>
+        <line class="shut" id="shutL" x1="40" y1="54" x2="84" y2="54" style="display:none"/>
+        <line class="shut" id="shutR" x1="116" y1="54" x2="160" y2="54" style="display:none"/>
+        <path class="m m-smile line" d="M88 88Q100 100 112 88"/>
+        <path class="m m-flat line" d="M91 92H109"/>
+        <ellipse class="m m-o fill" cx="100" cy="93" rx="6" ry="7"/>
+        <ellipse class="m m-yawn1 fill" cx="100" cy="94" rx="7" ry="9"/>
+        <ellipse class="m m-yawn2 fill" cx="100" cy="97" rx="10" ry="14"/>
+        <ellipse class="m m-chew1 fill" cx="100" cy="92" rx="9" ry="5.5"/>
+        <ellipse class="m m-sleep fill" cx="100" cy="92" rx="4" ry="3"/>
+        <ellipse class="m m-sleep2 fill" cx="100" cy="92" rx="5" ry="4"/>
       </svg>
     </div>
   </div>
@@ -734,99 +698,160 @@
   }
 
   // ---------- Face ----------
-  // The little character at the top. It sleeps while the baby sleeps and is awake and curious
-  // otherwise: it blinks, glances around, looks where you tap and reacts to what you log.
+  // The little character at the top, animated frame by frame like a sprite sheet: every
+  // change is a few quick, discrete frames (no tweening or squashing). Eyes are round with
+  // flat lid cuts. It sleeps while the baby sleeps, gets drowsier the longer the baby has
+  // been awake (2h, 2.5h, 3h), and reacts to taps and feeds.
   const Face = (() => {
     const svg = $('face'), hit = $('faceHit'), wrap = $('faceWrap');
-    const pupils = [...svg.querySelectorAll('.pupil')];
-    const EYES = [[62, 54], [138, 54]], VB = [26, 18, 148, 98], REACH = 11; // VB matches the svg viewBox
-    const EXPR = {
-      awake: { eyes: 'open', mouth: 'smile' },
-      asleep: { eyes: 'closed', mouth: 'sleep' },
-      peek: { eyes: 'peek', mouth: 'sleep' },
-      yawn: { eyes: 'happy', mouth: 'yawn' },
-      yum: { eyes: 'open', mouth: 'chew' },
-      surprised: { eyes: 'wide', mouth: 'o' },
-      dizzy: { eyes: 'open', mouth: 'o', dizzy: true }
+    const EYE = { L: [62, 54], R: [138, 54] }, ER = 30, VB = [26, 18, 148, 98], REACH = 11;
+    const el = (id) => document.getElementById(id);
+    const parts = { L: { lid: el('lidL'), g: el('eyeL'), pup: el('pupL'), shut: el('shutL') },
+                    R: { lid: el('lidR'), g: el('eyeR'), pup: el('pupR'), shut: el('shutR') } };
+    const PUPIL = 20.9, BIG = 24.7;
+
+    // Resting poses. t / b: how much of the eye the top / bottom lid covers (0..1);
+    // x / y: pupil offset; r: pupil radius; m: mouth.
+    const POSE = {
+      awake:   { t: 0,    b: 0,   x: 0, y: 0, r: PUPIL, m: 'smile' },
+      drowsy1: { t: .3,   b: 0,   x: 0, y: 3, r: PUPIL, m: 'smile' },
+      drowsy2: { t: .48,  b: 0,   x: 0, y: 6, r: PUPIL, m: 'flat' },
+      drowsy3: { t: .62,  b: .04, x: 0, y: 8, r: PUPIL, m: 'flat' },
+      asleep:  { t: .5,   b: .5,  x: 0, y: 0, r: PUPIL, m: 'sleep' }
     };
-    const SLEEPY = new Set(['asleep', 'peek']);
-    let sleeping = null, playing = false, stepTimer = null, holdUntil = 0, taps = [], dizzyUntil = 0;
+    const SHUT = { t: .5, b: .5 };
+    const half = (p) => ({ t: p.t + (.5 - p.t) * .55, b: p.b + (.5 - p.b) * .3 });
 
-    function apply(name) {
-      const e = EXPR[name];
-      svg.dataset.eyes = e.eyes;
-      svg.dataset.mouth = e.mouth;
-      svg.classList.toggle('dizzy', !!e.dizzy);
+    let mood = 'awake', big = false, breath = false, gaze = [0, 0];
+    let playing = null, stepTimer = null, holdUntil = 0, gazeTimer = null, taps = [], dizzyUntil = 0;
+
+    function base() {
+      const p = { ...POSE[big && mood !== 'asleep' ? 'awake' : mood] };
+      if (big && mood !== 'asleep') p.r = BIG;
+      if (mood === 'asleep' && breath) p.m = 'sleep2';
+      return p;
     }
-    const rest = () => (sleeping ? 'asleep' : 'awake');
+    // Draws one frame: the base pose with the frame's overrides (per eye under L / R).
+    function draw(frame = {}) {
+      const b = base(), f = typeof frame === 'function' ? frame(b) : frame;
+      for (const side of ['L', 'R']) {
+        const e = { ...b, ...f, ...(f[side] || {}) }, [cx, cy] = EYE[side], P = parts[side];
+        const top = cy - ER + e.t * 2 * ER, bot = cy + ER - e.b * 2 * ER, open = bot - top > 1.5;
+        P.lid.setAttribute('y', top.toFixed(2));
+        P.lid.setAttribute('height', Math.max(0, bot - top).toFixed(2));
+        const gx = e.abs ? 0 : gaze[0], gy = e.abs ? 0 : gaze[1];
+        P.pup.setAttribute('cx', (cx + e.x + gx).toFixed(2));
+        P.pup.setAttribute('cy', (cy + e.y + gy).toFixed(2));
+        P.pup.setAttribute('r', e.r);
+        P.g.style.display = open ? '' : 'none';
+        P.shut.style.display = open ? 'none' : '';
+        if (!open) {
+          const y = Math.min(Math.max((top + bot) / 2, cy - ER + 6), cy + ER - 6);
+          const w = Math.sqrt(Math.max(0, ER * ER - (y - cy) ** 2)) * .8;
+          P.shut.setAttribute('x1', (cx - w).toFixed(2)); P.shut.setAttribute('x2', (cx + w).toFixed(2));
+          P.shut.setAttribute('y1', y.toFixed(2)); P.shut.setAttribute('y2', y.toFixed(2));
+        }
+      }
+      svg.dataset.mouth = f.m || b.m;
+    }
+    const rest = () => { svg.dataset.expr = mood; draw(); };
 
-    // Plays [expression, ms] steps, then settles back to awake / asleep.
-    // While the baby sleeps only sleepy expressions play, unless forced (waking up).
-    function play(steps, force) {
-      if (sleeping && !force && steps.some(([n]) => !SLEEPY.has(n))) return;
+    // Plays a named sequence of [frame, ms] steps, then returns to the resting pose.
+    // While the baby sleeps only sleepy reactions play, unless forced (waking up).
+    function play(name, steps, force) {
+      if (mood === 'asleep' && !force && !SLEEPY.has(name)) return;
       clearTimeout(stepTimer);
-      playing = true;
+      playing = name;
+      svg.dataset.expr = name;
       let i = 0;
       (function next() {
-        if (i >= steps.length) { playing = false; apply(rest()); return; }
-        const [name, ms] = steps[i++];
-        apply(name);
+        if (i >= steps.length) { playing = null; rest(); return; }
+        const [frame, ms] = steps[i++];
+        draw(frame);
         stepTimer = setTimeout(next, ms);
       })();
     }
+    const blinkSteps = (ms = 40, hold = 50) => [[half, ms], [SHUT, hold], [half, ms]];
+    const repeat = (n, steps) => Array.from({ length: n }, () => steps).flat();
+    const SEQ = {
+      blink: () => blinkSteps(),
+      slowBlink: () => blinkSteps(70, 140),
+      longBlink: () => [[half, 90], [SHUT, 1100], [{ t: 0, b: 0 }, 90], [half, 60]],
+      yawn: () => [[{ m: 'o' }, 80], [p => ({ ...half(p), m: 'yawn1' }), 80], [p => ({ ...half(p), m: 'yawn2' }), 900],
+                   [p => ({ ...half(p), m: 'yawn1' }), 80], [{ m: 'o' }, 80]],
+      sleep: () => [[{ t: 0, b: 0, m: 'o' }, 70], [{ t: .3, b: 0, m: 'yawn1' }, 70], [{ t: .45, b: 0, m: 'yawn2' }, 1000],
+                    [{ t: .45, b: 0, m: 'yawn1' }, 70], [{ t: .48, b: .2, m: 'flat' }, 160], [{ ...SHUT, m: 'flat' }, 200]],
+      wake: () => [[{ t: .35, b: .35, m: 'flat' }, 50], [{ t: 0, b: 0, r: 13, m: 'o' }, 700], [{ t: 0, b: 0, r: 17, m: 'o' }, 60]],
+      surprised: () => [[{ t: 0, b: 0, r: 15, m: 'o' }, 45], [{ t: 0, b: 0, r: 12, m: 'o' }, 650], [{ t: 0, b: 0, r: 16, m: 'o' }, 45]],
+      peek: () => [[{ L: { t: .35, b: .25 } }, 60], [{ L: { t: .2, b: .15, r: 16 } }, 750], [{ L: { t: .35, b: .25 } }, 60]],
+      chew: () => repeat(6, [[{ m: 'chew1' }, 130], [{ m: 'chew2' }, 130]]),
+      dizzy: () => repeat(3, Array.from({ length: 8 }, (_, k) => {
+        const a = (k / 8) * Math.PI * 2;
+        return [{ t: 0, b: 0, abs: true, x: Math.cos(a) * 9, y: Math.sin(a) * 9, m: 'o' }, 55];
+      })).concat([[{ t: 0, b: 0, abs: true, m: 'o' }, 200]])
+    };
+    const SLEEPY = new Set(['peek']);
+    const react = (name, force) => play(name, SEQ[name](), force);
     // For reactions after a sheet closes, so the face is in view.
-    const later = (steps, ms = 220) => setTimeout(() => play(steps), ms);
+    const later = (name, ms = 220) => setTimeout(() => react(name), ms);
 
-    // Wide-eyed (pupils 30% bigger) while a feed is being logged.
+    // Mood from the baby's state: asleep, or how long they've been awake.
+    function setState(sleeping, awakeMs) {
+      const next = sleeping ? 'asleep'
+        : awakeMs >= 3 * HOUR ? 'drowsy3' : awakeMs >= 2.5 * HOUR ? 'drowsy2' : awakeMs >= 2 * HOUR ? 'drowsy1' : 'awake';
+      if (next === mood && svg.dataset.expr) return;
+      mood = next;
+      document.documentElement.classList.toggle('night', mood === 'asleep');
+      if (mood === 'asleep') gaze = [0, 0];
+      if (!playing) rest();
+    }
+    // Wide-eyed (bigger pupils, lids up) while a feed is being logged.
     function setBig(v) {
-      svg.classList.toggle('big', v);
-      if (v) { holdUntil = 0; restGaze(); } // big pupils stay centred so they fit the eyes
+      if (v === big) return;
+      big = v;
+      if (playing) return;
+      draw(v ? { r: (PUPIL + BIG) / 2 } : { r: (PUPIL + BIG) / 2 });
+      setTimeout(() => { if (!playing) draw(); }, 45);
     }
 
-    function setSleeping(v) {
-      if (v === sleeping) return;
-      sleeping = v;
-      document.documentElement.classList.toggle('night', v);
-      if (!playing) apply(rest());
-    }
-
-    function setPupils(offsets) {
-      pupils.forEach((p, i) => { p.style.transform = `translate(${offsets[i][0].toFixed(1)}px, ${offsets[i][1].toFixed(1)}px)`; });
-    }
-    function restGaze() {
-      if (Date.now() < holdUntil) return;
-      setPupils([[0, 0], [0, 0]]); // looking straight ahead
+    // Eyes jump to look somewhere in two quick frames, hold, then jump back.
+    function setGaze(target) {
+      const mid = [(gaze[0] + target[0]) / 2, (gaze[1] + target[1]) / 2];
+      gaze = mid; if (!playing) draw();
+      clearTimeout(gazeTimer);
+      gazeTimer = setTimeout(() => { gaze = target; if (!playing) draw(); }, 45);
     }
     function lookAt(x, y, ms = 1600) {
+      if (mood === 'asleep') return;
       const r = svg.getBoundingClientRect();
       if (!r.width) return;
-      setPupils(EYES.map(([ex, ey]) => {
-        const dx = x - (r.left + (ex - VB[0]) / VB[2] * r.width), dy = y - (r.top + (ey - VB[1]) / VB[3] * r.height);
-        const d = Math.hypot(dx, dy) || 1, k = REACH * Math.min(1, d / 140);
-        return [dx / d * k, dy / d * k];
-      }));
+      const [ex, ey] = EYE.L, [rx] = EYE.R;
+      const cx = r.left + (((ex + rx) / 2) - VB[0]) / VB[2] * r.width, cy = r.top + (ey - VB[1]) / VB[3] * r.height;
+      const dx = x - cx, dy = y - cy, d = Math.hypot(dx, dy) || 1, k = REACH * Math.min(1, d / 140);
+      setGaze([dx / d * k, dy / d * k]);
       holdUntil = Date.now() + ms;
-      setTimeout(restGaze, ms + 20);
+      setTimeout(() => { if (Date.now() >= holdUntil) setGaze([0, 0]); }, ms + 20);
     }
-    function blink(twice) {
-      svg.classList.add('blink');
-      setTimeout(() => { svg.classList.remove('blink'); if (twice) setTimeout(() => blink(false), 140); }, 120);
-    }
-    (function blinkLoop() {
+
+    // Idle life: blinks, glances, and (when drowsy) slow blinks, nodding off and yawns.
+    (function idle() {
+      const wait = { awake: [2400, 6000], drowsy1: [2500, 5000], drowsy2: [2200, 4500], drowsy3: [1800, 3500], asleep: [1800, 1800] }[mood];
       setTimeout(() => {
-        if (!document.hidden && /^(open|wide)$/.test(svg.dataset.eyes)) blink(Math.random() < 0.2);
-        blinkLoop();
-      }, 2400 + Math.random() * 3600);
-    })();
-    (function glanceLoop() {
-      setTimeout(() => {
-        if (!sleeping && !playing && !document.hidden && Date.now() > holdUntil + 3000) {
-          const r = svg.getBoundingClientRect();
-          const [sx, sy] = [[-1, 0.2], [1, 0.2], [-0.7, -0.6], [0.7, -0.6]][Math.floor(Math.random() * 4)];
-          lookAt(r.left + r.width / 2 + sx * 300, r.top + r.height / 2 + sy * 300, 1100);
+        if (!playing && !document.hidden) {
+          const r = Math.random();
+          if (mood === 'asleep') { breath = !breath; draw(); }
+          else if (mood === 'awake') {
+            if (r < .2 && Date.now() > holdUntil + 3000) {
+              const b = svg.getBoundingClientRect(), [sx, sy] = [[-1, .2], [1, .2], [-.7, -.6], [.7, -.6]][Math.floor(Math.random() * 4)];
+              lookAt(b.left + b.width / 2 + sx * 300, b.top + b.height / 2 + sy * 300, 1100);
+            } else play('blink', r < .35 ? [...SEQ.blink(), [{}, 120], ...SEQ.blink()] : SEQ.blink());
+          }
+          else if (mood === 'drowsy1') react('slowBlink');
+          else if (mood === 'drowsy2') react(r < .3 ? 'longBlink' : 'slowBlink');
+          else react(r < .45 ? 'longBlink' : r < .75 ? 'yawn' : 'slowBlink');
         }
-        glanceLoop();
-      }, 6000 + Math.random() * 7000);
+        idle();
+      }, wait[0] + Math.random() * (wait[1] - wait[0]));
     })();
 
     function tapFace() {
@@ -834,13 +859,13 @@
       if (now < dizzyUntil) return; // let the dizzy spin finish
       taps = taps.filter(t => now - t < 2500).concat(now);
       buzz(8);
-      if (sleeping) return play([['peek', 900]]);
-      if (taps.length >= 5) { taps = []; dizzyUntil = now + 1500; return play([['dizzy', 1500]]); }
-      play([['surprised', 900]]);
+      if (mood === 'asleep') return react('peek');
+      if (taps.length >= 5) { taps = []; dizzyUntil = now + 1600; return react('dizzy'); }
+      react('surprised');
     }
     document.addEventListener('pointerdown', e => {
       if (hit.contains(e.target)) tapFace();
-      else if (!sleeping) lookAt(e.clientX, e.clientY);
+      else lookAt(e.clientX, e.clientY);
     }, { capture: true, passive: true });
 
     // The face drifts up and shrinks a little as the cards slide over it.
@@ -852,12 +877,11 @@
         ticking = false;
         const y = Math.max(0, scrollY);
         wrap.style.transform = `translateY(${(-y * 0.3).toFixed(1)}px) scale(${(1 - Math.min(y, 300) / 1500).toFixed(3)})`;
-        restGaze();
       });
     }, { passive: true });
 
-    restGaze();
-    return { setSleeping, setBig, play, later, lookAt };
+    rest();
+    return { setState, setBig, react, later, lookAt };
   })();
 
   // ---------- Hero ----------
@@ -868,7 +892,6 @@
     const hero = $('hero');
     const sleeping = !!state.active;
     hero.classList.toggle('sleeping', sleeping);
-    Face.setSleeping(sleeping);
 
     let ms, label, sub;
     if (sleeping) {
@@ -888,6 +911,7 @@
       }
     }
     $('statusText').textContent = label;
+    Face.setState(sleeping, sleeping || ms == null ? 0 : ms);
 
     if (ms == null) {
       $('timer').innerHTML = '0<small>m</small>';
@@ -911,8 +935,8 @@
 
   $('mainBtn').addEventListener('click', () => {
     const now = Date.now();
-    if (state.active) Face.play([['surprised', 1000]], true);
-    else Face.play([['yawn', 1500]]);
+    if (state.active) Face.react('wake', true);
+    else Face.react('sleep');
     if (state.active) {
       const start = state.active;
       if (now - start < MIN) {
@@ -1268,7 +1292,7 @@
     }
     const x = addEntry('feeds', { id: uid(), ...f });
     save(); hide(); buzz([12, 60, 12]); renderAll();
-    if (f.type === 'solid') Face.later([['yum', 1600]]);
+    if (f.type === 'solid') Face.later('chew');
     const what = f.type === 'milk' ? (f.ml ? `${f.ml} ml ${f.what.toLowerCase()}` : f.what.toLowerCase()) : `${f.what || 'solids'}${f.ml ? ` · ${f.ml} g` : ''}`;
     toast(`Logged ${what}`.slice(0, 40), () => { removeEntry('feeds', x.id); save(); renderAll(); });
   });
@@ -1276,7 +1300,7 @@
     const removed = removeEntry('feeds', feedEditing);
     if (!removed) return hide();
     save(); hide(); buzz(20); renderAll();
-    Face.later([['surprised', 900]]);
+    Face.later('surprised');
     toast('Deleted', () => { restoreEntry('feeds', removed); save(); renderAll(); });
   });
   document.querySelectorAll('.qa[data-feed]').forEach(b => b.addEventListener('click', () => {
@@ -1493,7 +1517,7 @@
     const removed = removeEntry('sleeps', editing);
     if (!removed) return hide();
     save(); hide(); buzz(20); renderAll();
-    Face.later([['surprised', 900]]);
+    Face.later('surprised');
     toast('Deleted', () => { restoreEntry('sleeps', removed); save(); renderAll(); });
   });
 
