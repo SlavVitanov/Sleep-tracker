@@ -152,8 +152,8 @@
 
   .face.dizzy .pupil { animation: dizzy .45s linear infinite; }
   @keyframes dizzy {
-    0% { transform: translate(9px, 0); } 25% { transform: translate(0, 9px); }
-    50% { transform: translate(-9px, 0); } 75% { transform: translate(0, -9px); } 100% { transform: translate(9px, 0); }
+    0% { transform: translate(6px, 0); } 25% { transform: translate(0, 6px); }
+    50% { transform: translate(-6px, 0); } 75% { transform: translate(0, -6px); } 100% { transform: translate(6px, 0); }
   }
 
 
@@ -421,7 +421,7 @@
           <g class="eye L">
             <g class="open">
               <circle class="white" cx="62" cy="54" r="30"/>
-              <g clip-path="url(#clipL)"><g class="pupil"><circle cx="62" cy="54" r="19"/></g></g>
+              <g clip-path="url(#clipL)"><g class="pupil"><circle cx="62" cy="54" r="24.7"/></g></g>
             </g>
             <path class="shut" d="M40 52Q62 74 84 52"/>
             <path class="happy" d="M40 62Q62 34 84 62"/>
@@ -429,7 +429,7 @@
           <g class="eye R">
             <g class="open">
               <circle class="white" cx="138" cy="54" r="30"/>
-              <g clip-path="url(#clipR)"><g class="pupil"><circle cx="138" cy="54" r="19"/></g></g>
+              <g clip-path="url(#clipR)"><g class="pupil"><circle cx="138" cy="54" r="24.7"/></g></g>
             </g>
             <path class="shut" d="M116 52Q138 74 160 52"/>
             <path class="happy" d="M116 62Q138 34 160 62"/>
@@ -744,7 +744,7 @@
   const Face = (() => {
     const svg = $('face'), hit = $('faceHit'), wrap = $('faceWrap');
     const pupils = [...svg.querySelectorAll('.pupil')];
-    const EYES = [[62, 54], [138, 54]], VB = [26, 18, 148, 98], REACH = 11; // VB matches the svg viewBox
+    const EYES = [[62, 54], [138, 54]], VB = [26, 18, 148, 98], REACH = 8; // VB matches the svg viewBox
     const EXPR = {
       awake: { eyes: 'open', mouth: 'smile' },
       asleep: { eyes: 'closed', mouth: 'sleep' },
@@ -800,8 +800,7 @@
     }
     function restGaze() {
       if (Date.now() < holdUntil) return;
-      const down = 5 + 5 * Math.min(1, Math.max(0, scrollY) / 240); // looks down at the cards, more as you scroll
-      setPupils([[0, down], [0, down]]);
+      setPupils([[0, 0], [0, 0]]); // looking straight ahead
     }
     function lookAt(x, y, ms = 1600) {
       const r = svg.getBoundingClientRect();
