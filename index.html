@@ -230,25 +230,39 @@
   @media (prefers-color-scheme: dark) { .seg .thumb { background: #3a3a66; } }
 
   /* ---------- Chart ---------- */
-  .chart { position: relative; height: 190px; margin-top: 22px; padding-right: 30px; }
-  .grid { position: absolute; inset: 0 0 22px 0; pointer-events: none; }
+  /* Days: one column per day with the time of day running down, 7am at the top (like Apple Health). */
+  .chart { position: relative; margin-top: 20px; }
+  .sc { position: relative; height: 300px; }
+  .sc-grid { position: absolute; inset: 0 0 22px 0; pointer-events: none; }
   .gl { position: absolute; left: 0; right: 0; border-top: 1px dashed var(--line); }
   .gl b { position: absolute; right: 0; top: -8px; font-size: 10px; font-weight: 700; color: var(--faint); }
-  .avg-line { position: absolute; left: 0; right: 30px; border-top: 1.5px dashed var(--muted); opacity: .45; transition: bottom .5s cubic-bezier(.3,.7,.2,1); }
-  .bars { position: absolute; inset: 0 30px 0 0; display: flex; align-items: flex-end; gap: var(--gap, 8px); }
-  .col { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; min-width: 0; }
-  .stack { width: 100%; max-width: 30px; height: calc(100% - 22px); display: flex; flex-direction: column; justify-content: flex-end; transition: opacity .25s; }
-  .seg-nap, .seg-night {
-    width: 100%; transform-origin: bottom; transition: height .55s cubic-bezier(.3,.7,.2,1);
+  .sc-cols { position: absolute; inset: 0 42px 0 0; display: flex; gap: var(--gap, 8px); }
+  .sc-col { flex: 1; min-width: 0; height: 100%; display: flex; flex-direction: column; align-items: center; }
+  .sc-track {
+    position: relative; flex: 1; width: 100%; max-width: 34px;
+    border-radius: var(--r, 8px); background: var(--card-2); transition: opacity .25s;
   }
-  .seg-nap { background: var(--nap); border-radius: 6px 6px 2px 2px; margin-bottom: 2px; }
-  .seg-night { background: var(--night); border-radius: 6px 6px 3px 3px; }
-  .seg-nap.empty { margin-bottom: 0; }
-  .col.today .seg-night { background: repeating-linear-gradient(-45deg, var(--night), var(--night) 4px, var(--night-2) 4px, var(--night-2) 8px); }
-  .col.today .seg-nap { background: repeating-linear-gradient(-45deg, var(--nap), var(--nap) 4px, var(--nap-2) 4px, var(--nap-2) 8px); }
-  .bars.has-sel .col:not(.sel) .stack { opacity: .3; }
+  .sc-seg { position: absolute; left: 0; right: 0; min-height: 2px; border-radius: var(--r, 8px); transform-origin: top; }
+  .sc-seg.night, .hz-seg.night { background: var(--night); }
+  .sc-seg.nap, .hz-seg.nap { background: var(--nap); }
+  .sc-seg.live.night, .hz-seg.live.night { background: repeating-linear-gradient(-45deg, var(--night), var(--night) 4px, var(--night-2) 4px, var(--night-2) 8px); }
+  .sc-seg.live.nap, .hz-seg.live.nap { background: repeating-linear-gradient(-45deg, var(--nap), var(--nap) 4px, var(--nap-2) 4px, var(--nap-2) 8px); }
+  .sc-now { position: absolute; left: -3px; right: -3px; height: 2px; border-radius: 2px; background: var(--text); opacity: .5; }
+  .sc-cols.has-sel .sc-col:not(.sel) .sc-track { opacity: .35; }
   .xl { height: 22px; line-height: 22px; font-size: 11px; font-weight: 700; color: var(--faint); white-space: nowrap; }
-  .col.sel .xl { color: var(--text); }
+  .sc-col.sel .xl { color: var(--text); }
+  .chart.anim .sc-seg { animation: growy .5s cubic-bezier(.3, .7, .2, 1) both; }
+  .chart.anim .hz-seg { animation: growx .5s cubic-bezier(.3, .7, .2, 1) both; }
+  @keyframes growy { from { transform: scaleY(0); opacity: 0; } }
+  @keyframes growx { from { transform: scaleX(0); opacity: 0; } }
+
+  /* 24H: one horizontal line for the last 24 hours */
+  .hz-track { position: relative; height: 64px; border-radius: 16px; background: var(--card-2); overflow: hidden; }
+  .hz-band { position: absolute; top: 0; bottom: 0; background: var(--night); opacity: .08; pointer-events: none; }
+  .hz-seg { position: absolute; top: 10px; bottom: 10px; min-width: 3px; border-radius: 8px; transform-origin: left; transition: opacity .25s; }
+  .hz-track.has-sel .hz-seg:not(.sel) { opacity: .35; }
+  .hz-axis { position: relative; height: 24px; margin: 0 2px; }
+  .hz-axis b { position: absolute; top: 6px; transform: translateX(-50%); font-size: 11px; font-weight: 700; color: var(--faint); white-space: nowrap; }
   .legend { display: flex; gap: 16px; margin-top: 14px; font-size: 12px; color: var(--muted); font-weight: 600; flex-wrap: wrap; }
   .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 3px; margin-right: 6px; vertical-align: 0; }
 
@@ -471,10 +485,7 @@
         <div class="delta" id="chartDelta"></div>
       </div>
     </div>
-    <div class="chart" id="chart">
-      <div class="grid" id="grid"></div>
-      <div class="bars" id="bars"></div>
-    </div>
+    <div class="chart anim" id="chart"></div>
     <div class="legend">
       <span><i style="background:var(--night)"></i>Night</span>
       <span><i style="background:var(--nap)"></i>Naps</span>
@@ -699,7 +710,7 @@
       else { next = at(addDays(d, 1), DAY_START_HOUR); night = true; key = dayKey(d); }
       if (next <= t) next = t + HOUR; // DST safety
       const end = Math.min(next, e);
-      out.push({ key, night, ms: end - t });
+      out.push({ key, night, ms: end - t, s: t, e: end });
       t = end;
     }
     return out;
@@ -956,105 +967,78 @@
     return days;
   }
 
-  // One bar per column; nodes are reused so heights animate between ranges.
-  function ensureBars(n, gap) {
-    const bars = $('bars');
-    bars.style.setProperty('--gap', gap);
-    if (bars.children.length !== n) {
-      bars.innerHTML = Array(n).fill('<div class="col"><div class="stack"><div class="seg-nap" style="height:0"></div><div class="seg-night" style="height:0"></div></div><div class="xl"></div></div>').join('');
-      [...bars.children].forEach((c, i) => c.addEventListener('click', () => {
-        selected = selected === i ? null : i; buzz(6); renderChart(Date.now(), totalsByDay(Date.now()));
-      }));
-    }
-    return bars;
-  }
-  function setBar(col, night, nap, top) {
-    const n = col.querySelector('.seg-night'), d = col.querySelector('.seg-nap');
-    requestAnimationFrame(() => {
-      n.style.height = `${(night / top) * 100}%`;
-      d.style.height = `${(nap / top) * 100}%`;
-    });
-    d.classList.toggle('empty', nap === 0 || night === 0);
-  }
+  const pct = (x) => `${(x * 100).toFixed(3)}%`;
 
-  // Last 24 hours: one bar per clock hour, showing how long the baby slept in it.
+  // Last 24 hours on one horizontal line. Each sleep is one block, coloured night or nap.
   function renderHourly(now) {
-    const end = new Date(now); end.setMinutes(0, 0, 0);
-    const hours = [];
-    for (let i = 23; i >= 0; i--) { const s = end.getTime() - i * HOUR; hours.push({ s, e: s + HOUR, ms: 0 }); }
-    for (const sl of allSleeps(now)) {
-      for (const h of hours) h.ms += Math.max(0, Math.min(sl.end, h.e) - Math.max(sl.start, h.s));
-    }
+    const w0 = now - 24 * HOUR, w1 = now;
+    const segs = allSleeps(now)
+      .filter(s => s.end > w0 && s.start < w1)
+      .map(s => ({ s: Math.max(s.start, w0), e: Math.min(s.end, w1), night: isNight(s.start, s.end), src: s }))
+      .sort((a, b) => a.s - b.s);
     let nightTot = 0, napTot = 0;
-    for (const h of hours) {
-      const hr = new Date(h.s).getHours();
-      h.night = hr < DAY_START_HOUR || hr >= NIGHT_START_HOUR;
-      h.night ? (nightTot += h.ms) : (napTot += h.ms);
+    for (const g of segs) g.night ? (nightTot += g.e - g.s) : (napTot += g.e - g.s);
+
+    // faint shading for the night hours (7pm to 7am)
+    const bands = split(w0, w1).filter(c => c.night)
+      .map(c => `<i class="hz-band" style="left:${pct((c.s - w0) / (w1 - w0))};width:${pct((c.e - c.s) / (w1 - w0))}"></i>`).join('');
+    const blocks = segs.map((g, i) =>
+      `<i class="hz-seg ${g.night ? 'night' : 'nap'}${g.src.live ? ' live' : ''}${selected === i ? ' sel' : ''}" data-i="${i}" style="left:${pct((g.s - w0) / (w1 - w0))};width:${pct((g.e - g.s) / (w1 - w0))}"></i>`).join('');
+    // a label every 6 hours (00, 06, 12, 18)
+    let labels = '';
+    const t = new Date(w0); t.setMinutes(0, 0, 0); t.setHours(t.getHours() + 1);
+    for (; t.getTime() < w1; t.setHours(t.getHours() + 1)) {
+      if (t.getHours() % 6 === 0) labels += `<b style="left:${pct((t.getTime() - w0) / (w1 - w0))}">${pad(t.getHours())}:00</b>`;
     }
-    $('grid').innerHTML = [[0, '0'], [30, '30m'], [60, '1h']]
-      .map(([m, t]) => `<div class="gl" style="bottom:${(m / 60) * 100}%"><b>${t}</b></div>`).join('');
-    const bars = ensureBars(24, '2px');
-    hours.forEach((h, i) => {
-      const col = bars.children[i];
-      col.classList.toggle('today', i === 23);
-      col.classList.toggle('sel', selected === i);
-      setBar(col, h.night ? h.ms : 0, h.night ? 0 : h.ms, HOUR);
-      const hr = new Date(h.s).getHours();
-      col.querySelector('.xl').textContent = hr % 6 === 0 ? pad(hr) : '';
-    });
-    bars.classList.toggle('has-sel', selected != null);
-    $('chartNote').textContent = 'Each bar is one hour';
+    $('chart').innerHTML = `<div class="hz"><div class="hz-track${selected != null ? ' has-sel' : ''}">${bands}${blocks}</div><div class="hz-axis">${labels}</div></div>`;
+    $('chartNote').textContent = 'Last 24 hours';
+
     const el = $('chartDelta');
     el.className = 'delta';
-    if (selected != null && hours[selected]) {
-      const h = hours[selected];
-      $('chartEyebrow').textContent = `${fmtTime(h.s)} – ${fmtTime(h.e)}`;
-      $('chartBig').innerHTML = fmtDur(h.ms, true);
-      el.textContent = h.ms ? (h.night ? 'Night sleep' : 'Nap') : 'Awake';
+    if (selected != null && segs[selected]) {
+      const g = segs[selected];
+      $('chartEyebrow').textContent = g.night ? 'Night sleep' : 'Nap';
+      $('chartBig').innerHTML = fmtDur(g.src.end - g.src.start, true);
+      el.textContent = `${fmtTime(g.src.start)} – ${g.src.live ? 'now' : fmtTime(g.src.end)}`;
     } else {
       $('chartEyebrow').textContent = 'Last 24 hours';
       $('chartBig').innerHTML = fmtDur(nightTot + napTot, true);
-      el.textContent = nightTot + napTot ? `${fmtDur(nightTot)} night · ${fmtDur(napTot)} naps` : 'No sleep in the last 24 hours';
+      el.textContent = nightTot + napTot ? `${fmtDur(nightTot)} night · ${fmtDur(napTot)} naps · tap a block` : 'No sleep in the last 24 hours';
     }
   }
 
   function renderChart(now, totals) {
     if (range === 24) return renderHourly(now);
-    $('chartNote').textContent = 'Days run 7am → 7am';
+    $('chartNote').textContent = 'Each day runs 7am → 7am';
     const days = chartDays(now);
     const today = days[days.length - 1];
     const vals = days.map(k => ({ k, ...(totals[k] || { night: 0, nap: 0 }) }));
     const sum = v => v.night + v.nap;
-    const max = Math.max(4 * HOUR, ...vals.map(sum));
-    const step = max > 12 * HOUR ? 6 * HOUR : max > 6 * HOUR ? 4 * HOUR : 2 * HOUR;
-    const top = Math.ceil(max / step) * step;
 
     // Average over finished days that have data; fall back to today.
     const done = vals.filter(v => v.k !== today && sum(v) > 0);
     const pool = done.length ? done : vals.filter(v => sum(v) > 0);
     const avg = pool.length ? pool.reduce((a, v) => a + sum(v), 0) / pool.length : 0;
 
-    // grid
-    const grid = $('grid');
-    let g = '';
-    for (let y = 0; y <= top; y += step) {
-      g += `<div class="gl" style="bottom:${(y / top) * 100}%"><b>${y / HOUR}h</b></div>`;
+    // Where each sleep sits within its day (7am at the top, 7am next day at the bottom).
+    const chunks = {};
+    for (const sl of allSleeps(now)) {
+      for (const c of split(sl.start, sl.end)) (chunks[c.key] || (chunks[c.key] = [])).push({ ...c, live: sl.live });
     }
-    if (avg) g += `<div class="avg-line" style="bottom:${(avg / top) * 100}%"></div>`;
-    grid.innerHTML = g;
-
-    const bars = ensureBars(vals.length, range === 7 ? '12px' : range === 14 ? '6px' : '3px');
     const labelEvery = range === 7 ? 1 : range === 14 ? 2 : 5;
-    vals.forEach((v, i) => {
-      const col = bars.children[i];
-      col.classList.toggle('today', v.k === today);
-      col.classList.toggle('sel', selected === i);
-      setBar(col, v.night, v.nap, top);
-      const d = keyToDate(v.k);
+    const cols = vals.map((v, i) => {
+      const d = keyToDate(v.k), ws = at(d, DAY_START_HOUR), span = at(addDays(d, 1), DAY_START_HOUR) - ws;
+      const segs = (chunks[v.k] || []).map(c =>
+        `<i class="sc-seg ${c.night ? 'night' : 'nap'}${c.live ? ' live' : ''}" style="top:${pct((c.s - ws) / span)};height:${pct((c.e - c.s) / span)}"></i>`).join('');
+      const nowLine = v.k === today ? `<i class="sc-now" style="top:${pct((now - ws) / span)}"></i>` : '';
       const fromEnd = vals.length - 1 - i;
-      col.querySelector('.xl').textContent = range === 7 ? WD[d.getDay()] : (fromEnd % labelEvery === 0 ? d.getDate() : '');
-    });
-    bars.classList.toggle('has-sel', selected != null);
+      const label = range === 7 ? WD[d.getDay()] : (fromEnd % labelEvery === 0 ? d.getDate() : '');
+      return `<button class="sc-col${selected === i ? ' sel' : ''}" data-i="${i}"><div class="sc-track">${segs}${nowLine}</div><span class="xl">${label}</span></button>`;
+    }).join('');
+    const grid = ['07:00', '13:00', '19:00', '01:00', '07:00']
+      .map((t, i) => `<div class="gl" style="top:${i * 25}%"><b>${t}</b></div>`).join('');
+    const gap = range === 7 ? '12px' : range === 14 ? '6px' : '3px', r = range === 30 ? '3px' : range === 14 ? '5px' : '8px';
+    $('chart').innerHTML = `<div class="sc" style="--gap:${gap};--r:${r}"><div class="sc-grid">${grid}</div><div class="sc-cols${selected != null ? ' has-sel' : ''}">${cols}</div></div>`;
 
     // header
     if (selected != null && vals[selected]) {
@@ -1080,10 +1064,26 @@
         el.textContent = Math.abs(diff) < MIN ? 'Same as previous period' : `${diff > 0 ? '▲' : '▼'} ${fmtDur(Math.abs(diff))} vs last ${range}d`;
       } else {
         el.className = 'delta';
-        el.textContent = avg ? 'Tap a bar for details' : 'Your chart fills in as you log sleep';
+        el.textContent = avg ? 'Tap a day for details' : 'Your chart fills in as you log sleep';
       }
     }
   }
+
+  $('chart').addEventListener('click', e => {
+    const t = e.target.closest('[data-i]');
+    if (!t) return;
+    const i = +t.dataset.i;
+    selected = selected === i ? null : i;
+    buzz(6);
+    renderChart(Date.now(), totalsByDay(Date.now()));
+  });
+  function animateChart() {
+    const c = $('chart');
+    c.classList.remove('anim'); void c.offsetWidth; c.classList.add('anim');
+    clearTimeout(animateChart.t);
+    animateChart.t = setTimeout(() => c.classList.remove('anim'), 700);
+  }
+  animateChart();
 
   // segmented control
   const seg = $('rangeSeg');
@@ -1095,6 +1095,7 @@
     seg.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
     range = +b.dataset.n; selected = null; buzz(6);
     placeThumb(seg);
+    animateChart();
     const now = Date.now(); renderChart(now, totalsByDay(now));
   }));
 
