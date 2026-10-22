@@ -4,7 +4,7 @@ A small tracker for sleeps and feeds that lives on your phone's home screen and 
 
 - **A little face** at the top that keeps Sye company. It's animated frame by frame, with round eyes and flat lids. It sleeps while Sye sleeps, and is awake and curious otherwise.
   - It blinks, glances around and looks wherever you tap.
-  - It gets drowsy the longer Sye is awake: heavier lids after 2 hours, half-closed after 2½ hours, and nodding off and yawning after 3 hours.
+  - It gets drowsy the longer Sye is awake: heavier lids after 1½ hours, half-closed after 2 hours, and nodding off and yawning after 2½ hours.
   - It yawns when a sleep starts and pops its eyes open on wake-up.
   - Its pupils grow when you tap Liquids or Solids, and it chews when you log solids.
   - Tap it and it looks surprised, or tap it five times quickly. If Sye is asleep, it just peeks one eye open.
