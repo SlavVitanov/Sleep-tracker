@@ -198,6 +198,9 @@
   .big span { font-size: 18px; color: var(--muted); font-weight: 700; letter-spacing: -0.01em; }
   .delta { font-size: 13px; font-weight: 700; margin-top: 4px; color: var(--muted); min-height: 18px; }
   .delta.up { color: var(--good); }
+  .split { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 6px; font-size: 14px; font-weight: 800; }
+  .split:empty { display: none; }
+  .split i { display: inline-block; width: 8px; height: 8px; border-radius: 3px; margin-right: 6px; }
 
   .seg { display: inline-flex; background: var(--card-2); border-radius: 12px; padding: 3px; position: relative; flex-shrink: 0; }
   .seg button { position: relative; z-index: 1; font-size: 13px; font-weight: 700; padding: 7px 11px; border-radius: 9px; color: var(--muted); transition: color .2s; }
@@ -431,8 +434,8 @@
   </div>
 
   <div class="tiles">
-    <div class="tile"><div class="label">Slept today</div><div class="val" id="tTotal">0m</div></div>
-    <div class="tile"><div class="label">Naps</div><div class="val" id="tNaps">0</div></div>
+    <div class="tile"><div class="label" id="tNightLabel">Last night</div><div class="val" id="tNight">0m</div></div>
+    <div class="tile"><div class="label" id="tNapLabel">Naps today</div><div class="val" id="tNaps">0m</div></div>
     <div class="tile"><div class="label">Longest</div><div class="val" id="tLong">–</div></div>
   </div>
 
@@ -448,6 +451,7 @@
       <div>
         <div class="eyebrow" id="chartEyebrow">Daily average</div>
         <div class="big" id="chartBig">0h</div>
+        <div class="split" id="chartSplit"></div>
         <div class="delta" id="chartDelta"></div>
       </div>
     </div>
@@ -954,16 +958,21 @@
 
   // ---------- Tiles ----------
   function renderTiles(now, totals) {
-    const today = sleepDayOf(now);
+    const today = sleepDayOf(now), h = new Date(now).getHours();
     const t = totals[today] || { night: 0, nap: 0 };
-    $('tTotal').innerHTML = fmtDur(t.night + t.nap, true);
+    // Night sleep: tonight once it's evening (7pm to 7am), otherwise last night.
+    const tonight = h >= NIGHT_START_HOUR || h < DAY_START_HOUR;
+    const lastNight = totals[dayKey(addDays(keyToDate(today), -1))] || { night: 0 };
+    $('tNightLabel').textContent = tonight ? 'Tonight' : 'Last night';
+    $('tNight').innerHTML = fmtDur(tonight ? t.night : lastNight.night, true);
+    $('tNaps').innerHTML = fmtDur(t.nap, true);
     let naps = 0, longest = 0;
     for (const s of allSleeps(now)) {
       if (sleepDayOf(s.start) !== today) continue;
       if (!isNight(s.start, s.end)) naps++;
       longest = Math.max(longest, s.end - s.start);
     }
-    $('tNaps').textContent = naps;
+    $('tNapLabel').textContent = naps === 1 ? '1 nap today' : `${naps} naps today`;
     $('tLong').innerHTML = longest ? fmtDur(longest, true) : '–';
   }
 
@@ -981,6 +990,9 @@
   }
 
   const pct = (x) => `${(x * 100).toFixed(3)}%`;
+  // Night and nap totals side by side, with the chart's colours.
+  const splitHtml = (night, nap) =>
+    `<span><i style="background:var(--night)"></i>${fmtDur(night)} night</span><span><i style="background:var(--nap)"></i>${fmtDur(nap)} naps</span>`;
 
   // Last 24 hours on one horizontal line. Each sleep is one block, coloured night or nap.
   function renderHourly(now) {
@@ -1013,10 +1025,12 @@
       $('chartEyebrow').textContent = g.night ? 'Night sleep' : 'Nap';
       $('chartBig').innerHTML = fmtDur(g.src.end - g.src.start, true);
       el.textContent = `${fmtTime(g.src.start)} – ${g.src.live ? 'now' : fmtTime(g.src.end)}`;
+      $('chartSplit').innerHTML = '';
     } else {
       $('chartEyebrow').textContent = 'Last 24 hours';
       $('chartBig').innerHTML = fmtDur(nightTot + napTot, true);
-      el.textContent = nightTot + napTot ? `${fmtDur(nightTot)} night · ${fmtDur(napTot)} naps · tap a block` : 'No sleep in the last 24 hours';
+      $('chartSplit').innerHTML = nightTot + napTot ? splitHtml(nightTot, napTot) : '';
+      el.textContent = nightTot + napTot ? 'Tap a block for details' : 'No sleep in the last 24 hours';
     }
   }
 
@@ -1059,10 +1073,13 @@
       $('chartEyebrow').textContent = v.k === today ? 'Today so far' : `${WDL[d.getDay()]}, ${d.getDate()} ${MON[d.getMonth()]}`;
       $('chartBig').innerHTML = fmtDur(sum(v), true);
       $('chartDelta').className = 'delta';
-      $('chartDelta').textContent = sum(v) ? `${fmtDur(v.night)} night · ${fmtDur(v.nap)} naps` : 'No sleep logged';
+      $('chartSplit').innerHTML = sum(v) ? splitHtml(v.night, v.nap) : '';
+      $('chartDelta').textContent = sum(v) ? '' : 'No sleep logged';
     } else {
       $('chartEyebrow').textContent = `Daily average · ${range} days`;
       $('chartBig').innerHTML = avg ? fmtDur(avg, true) : '0<span>h</span>';
+      const avgOf = k => pool.length ? pool.reduce((a, v) => a + v[k], 0) / pool.length : 0;
+      $('chartSplit').innerHTML = avg ? splitHtml(avgOf('night'), avgOf('nap')) : '';
       // Compare to the previous period of the same length
       const prevEnd = addDays(keyToDate(days[0]), -1);
       let pSum = 0, pN = 0;

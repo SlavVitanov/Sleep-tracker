@@ -12,8 +12,8 @@ A small tracker for sleeps and feeds that lives on your phone's home screen and 
 - **Feeds**: tap **Liquids** or **Solids** under the timer.
   - **Liquids**: choose Milk, Formula or Water and optionally type the amount in ml, or tap a quick size. It remembers your last amount.
   - **Solids**: type what was eaten (e.g. *potato, broccoli*) or tap suggestions, and optionally add the amount in grams. Suggestions learn from foods you've logged before.
-- **Today at a glance**: total sleep, number of naps and the longest stretch, plus time since the last drink, millilitres drunk today and the last meal.
-- **Sleep chart**: like Apple Health. **7D / 14D / 30D** show one column per day, with the time of day running down from 7am to 7am. Each sleep is a block at the time it happened (night in purple, naps in yellow), so the gaps show when Sye was awake. **24H** shows the last 24 hours on one horizontal line. Tap a day or a block for details.
+- **Today at a glance**: night sleep (last night, or tonight once it's evening), total nap time and number of naps today, the longest stretch, plus time since the last drink, millilitres drunk today and the last meal.
+- **Sleep chart**: like Apple Health. **7D / 14D / 30D** show one column per day, with the time of day running down from 7am to 7am. Each sleep is a block at the time it happened (night in purple, naps in yellow), so the gaps show when Sye was awake. **24H** shows the last 24 hours on one horizontal line. The heading shows night sleep and naps as separate totals (averages for 7D–30D). Tap a day or a block for details.
 - **Timeline**: sleeps and feeds together, newest first, with each day's totals and the time between drinks. Tap any entry to change or delete it. Use **+ Add** for anything you forgot to log.
 - **Private**: all data stays on your phone, unless you turn on sync with your partner (optional, see below).
 - **Sync with your partner** (optional): log on either phone and see it on both.
