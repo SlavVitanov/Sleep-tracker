@@ -198,6 +198,9 @@
   .big span { font-size: 18px; color: var(--muted); font-weight: 700; letter-spacing: -0.01em; }
   .delta { font-size: 13px; font-weight: 700; margin-top: 4px; color: var(--muted); min-height: 18px; }
   .delta.up { color: var(--good); }
+  .split { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 6px; font-size: 14px; font-weight: 800; }
+  .split:empty { display: none; }
+  .split i { display: inline-block; width: 8px; height: 8px; border-radius: 3px; margin-right: 6px; }
 
   .seg { display: inline-flex; background: var(--card-2); border-radius: 12px; padding: 3px; position: relative; flex-shrink: 0; }
   .seg button { position: relative; z-index: 1; font-size: 13px; font-weight: 700; padding: 7px 11px; border-radius: 9px; color: var(--muted); transition: color .2s; }
@@ -223,6 +226,14 @@
   .sc-seg.nap, .hz-seg.nap { background: var(--nap); }
   .sc-seg.live.night, .hz-seg.live.night { background: repeating-linear-gradient(-45deg, var(--night), var(--night) 4px, var(--night-2) 4px, var(--night-2) 8px); }
   .sc-seg.live.nap, .hz-seg.live.nap { background: repeating-linear-gradient(-45deg, var(--nap), var(--nap) 4px, var(--nap-2) 4px, var(--nap-2) 8px); }
+  /* Feeds: a dot at the time of each feed (blue drinks, green solids), ringed so it reads over sleep blocks. */
+  .sc-feed {
+    position: absolute; left: 50%; z-index: 1; width: var(--fd, 8px); height: var(--fd, 8px);
+    margin: calc(var(--fd, 8px) / -2) 0 0 calc(var(--fd, 8px) / -2); border-radius: 50%;
+    box-shadow: 0 0 0 var(--fr, 2px) var(--card);
+  }
+  .sc-feed.milk, .hz-feed.milk { background: var(--milk); }
+  .sc-feed.solid, .hz-feed.solid { background: var(--solid); }
   .sc-now { position: absolute; left: -3px; right: -3px; height: 2px; border-radius: 2px; background: var(--text); opacity: .5; }
   .sc-cols.has-sel .sc-col:not(.sel) .sc-track { opacity: .35; }
   .xl { height: 22px; line-height: 22px; font-size: 11px; font-weight: 700; color: var(--faint); white-space: nowrap; }
@@ -237,6 +248,14 @@
   .hz-band { position: absolute; top: 0; bottom: 0; background: var(--night); opacity: .08; pointer-events: none; }
   .hz-seg { position: absolute; top: 10px; bottom: 10px; min-width: 3px; border-radius: 8px; transform-origin: left; transition: opacity .25s; }
   .hz-track.has-sel .hz-seg:not(.sel) { opacity: .35; }
+  .hz-feeds { position: relative; height: 22px; margin: 6px 2px 0; }
+  .hz-feed {
+    position: absolute; top: 50%; width: 12px; height: 12px; margin: -6px 0 0 -6px; border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--card); transition: opacity .25s;
+  }
+  .hz-feed::before { content: ""; position: absolute; inset: -10px; } /* bigger tap target */
+  .hz-feeds.has-sel .hz-feed:not(.sel), .hz-track.has-sel ~ .hz-feeds .hz-feed { opacity: .35; }
+  .hz-feeds .hz-feed.sel { opacity: 1; }
   .hz-axis { position: relative; height: 24px; margin: 0 2px; }
   .hz-axis b { position: absolute; top: 6px; transform: translateX(-50%); font-size: 11px; font-weight: 700; color: var(--faint); white-space: nowrap; }
   .legend { display: flex; gap: 16px; margin-top: 14px; font-size: 12px; color: var(--muted); font-weight: 600; flex-wrap: wrap; }
@@ -431,8 +450,8 @@
   </div>
 
   <div class="tiles">
-    <div class="tile"><div class="label">Slept today</div><div class="val" id="tTotal">0m</div></div>
-    <div class="tile"><div class="label">Naps</div><div class="val" id="tNaps">0</div></div>
+    <div class="tile"><div class="label" id="tNightLabel">Last night</div><div class="val" id="tNight">0m</div></div>
+    <div class="tile"><div class="label" id="tNapLabel">Naps today</div><div class="val" id="tNaps">0m</div></div>
     <div class="tile"><div class="label">Longest</div><div class="val" id="tLong">–</div></div>
   </div>
 
@@ -448,6 +467,7 @@
       <div>
         <div class="eyebrow" id="chartEyebrow">Daily average</div>
         <div class="big" id="chartBig">0h</div>
+        <div class="split" id="chartSplit"></div>
         <div class="delta" id="chartDelta"></div>
       </div>
     </div>
@@ -455,6 +475,8 @@
     <div class="legend">
       <span><i style="background:var(--night)"></i>Night</span>
       <span><i style="background:var(--nap)"></i>Naps</span>
+      <span><i style="background:var(--milk);border-radius:50%"></i>Liquids</span>
+      <span><i style="background:var(--solid);border-radius:50%"></i>Solids</span>
       <span style="margin-left:auto" id="chartNote">Days run 7am → 7am</span>
     </div>
   </section>
@@ -954,16 +976,21 @@
 
   // ---------- Tiles ----------
   function renderTiles(now, totals) {
-    const today = sleepDayOf(now);
+    const today = sleepDayOf(now), h = new Date(now).getHours();
     const t = totals[today] || { night: 0, nap: 0 };
-    $('tTotal').innerHTML = fmtDur(t.night + t.nap, true);
+    // Night sleep: tonight once it's evening (7pm to 7am), otherwise last night.
+    const tonight = h >= NIGHT_START_HOUR || h < DAY_START_HOUR;
+    const lastNight = totals[dayKey(addDays(keyToDate(today), -1))] || { night: 0 };
+    $('tNightLabel').textContent = tonight ? 'Tonight' : 'Last night';
+    $('tNight').innerHTML = fmtDur(tonight ? t.night : lastNight.night, true);
+    $('tNaps').innerHTML = fmtDur(t.nap, true);
     let naps = 0, longest = 0;
     for (const s of allSleeps(now)) {
       if (sleepDayOf(s.start) !== today) continue;
       if (!isNight(s.start, s.end)) naps++;
       longest = Math.max(longest, s.end - s.start);
     }
-    $('tNaps').textContent = naps;
+    $('tNapLabel').textContent = naps === 1 ? '1 nap today' : `${naps} naps today`;
     $('tLong').innerHTML = longest ? fmtDur(longest, true) : '–';
   }
 
@@ -981,6 +1008,9 @@
   }
 
   const pct = (x) => `${(x * 100).toFixed(3)}%`;
+  // Night and nap totals side by side, with the chart's colours.
+  const splitHtml = (night, nap) =>
+    `<span><i style="background:var(--night)"></i>${fmtDur(night)} night</span><span><i style="background:var(--nap)"></i>${fmtDur(nap)} naps</span>`;
 
   // Last 24 hours on one horizontal line. Each sleep is one block, coloured night or nap.
   function renderHourly(now) {
@@ -997,26 +1027,41 @@
       .map(c => `<i class="hz-band" style="left:${pct((c.s - w0) / (w1 - w0))};width:${pct((c.e - c.s) / (w1 - w0))}"></i>`).join('');
     const blocks = segs.map((g, i) =>
       `<i class="hz-seg ${g.night ? 'night' : 'nap'}${g.src.live ? ' live' : ''}${selected === i ? ' sel' : ''}" data-i="${i}" style="left:${pct((g.s - w0) / (w1 - w0))};width:${pct((g.e - g.s) / (w1 - w0))}"></i>`).join('');
+    // feeds as dots in a row under the line; selected is 'f<index>' when a feed is tapped
+    const feeds = state.feeds.filter(f => f.at >= w0 && f.at <= w1).sort((a, b) => a.at - b.at);
+    const fsel = typeof selected === 'string' ? +selected.slice(1) : null;
+    const dots = feeds.map((f, i) =>
+      `<i class="hz-feed ${f.type === 'milk' ? 'milk' : 'solid'}${fsel === i ? ' sel' : ''}" data-f="${i}" style="left:${pct((f.at - w0) / (w1 - w0))}"></i>`).join('');
     // a label every 6 hours (00, 06, 12, 18)
     let labels = '';
     const t = new Date(w0); t.setMinutes(0, 0, 0); t.setHours(t.getHours() + 1);
     for (; t.getTime() < w1; t.setHours(t.getHours() + 1)) {
       if (t.getHours() % 6 === 0) labels += `<b style="left:${pct((t.getTime() - w0) / (w1 - w0))}">${pad(t.getHours())}:00</b>`;
     }
-    $('chart').innerHTML = `<div class="hz"><div class="hz-track${selected != null ? ' has-sel' : ''}">${bands}${blocks}</div><div class="hz-axis">${labels}</div></div>`;
+    const segSel = typeof selected === 'number';
+    $('chart').innerHTML = `<div class="hz"><div class="hz-track${selected != null ? ' has-sel' : ''}">${bands}${blocks}</div>` +
+      `<div class="hz-feeds${fsel != null ? ' has-sel' : ''}">${dots}</div><div class="hz-axis">${labels}</div></div>`;
     $('chartNote').textContent = 'Last 24 hours';
 
     const el = $('chartDelta');
     el.className = 'delta';
-    if (selected != null && segs[selected]) {
+    if (fsel != null && feeds[fsel]) {
+      const f = feeds[fsel];
+      $('chartEyebrow').textContent = feedLabel(f);
+      $('chartBig').innerHTML = f.ml ? `${f.ml}<span> ${f.type === 'milk' ? 'ml' : 'g'}</span>` : (f.type === 'milk' ? 'Drink' : 'Meal');
+      el.textContent = fmtTime(f.at);
+      $('chartSplit').innerHTML = '';
+    } else if (segSel && segs[selected]) {
       const g = segs[selected];
       $('chartEyebrow').textContent = g.night ? 'Night sleep' : 'Nap';
       $('chartBig').innerHTML = fmtDur(g.src.end - g.src.start, true);
       el.textContent = `${fmtTime(g.src.start)} – ${g.src.live ? 'now' : fmtTime(g.src.end)}`;
+      $('chartSplit').innerHTML = '';
     } else {
       $('chartEyebrow').textContent = 'Last 24 hours';
       $('chartBig').innerHTML = fmtDur(nightTot + napTot, true);
-      el.textContent = nightTot + napTot ? `${fmtDur(nightTot)} night · ${fmtDur(napTot)} naps · tap a block` : 'No sleep in the last 24 hours';
+      $('chartSplit').innerHTML = nightTot + napTot ? splitHtml(nightTot, napTot) : '';
+      el.textContent = nightTot + napTot ? 'Tap a block for details' : 'No sleep in the last 24 hours';
     }
   }
 
@@ -1038,20 +1083,25 @@
     for (const sl of allSleeps(now)) {
       for (const c of split(sl.start, sl.end)) (chunks[c.key] || (chunks[c.key] = [])).push({ ...c, live: sl.live });
     }
+    const feedsOf = {};
+    for (const f of state.feeds) (feedsOf[sleepDayOf(f.at)] || (feedsOf[sleepDayOf(f.at)] = [])).push(f);
     const labelEvery = range === 7 ? 1 : range === 14 ? 2 : 5;
     const cols = vals.map((v, i) => {
       const d = keyToDate(v.k), ws = at(d, DAY_START_HOUR), span = at(addDays(d, 1), DAY_START_HOUR) - ws;
       const segs = (chunks[v.k] || []).map(c =>
         `<i class="sc-seg ${c.night ? 'night' : 'nap'}${c.live ? ' live' : ''}" style="top:${pct((c.s - ws) / span)};height:${pct((c.e - c.s) / span)}"></i>`).join('');
       const nowLine = v.k === today ? `<i class="sc-now" style="top:${pct((now - ws) / span)}"></i>` : '';
+      const dots = (feedsOf[v.k] || []).map(f =>
+        `<i class="sc-feed ${f.type === 'milk' ? 'milk' : 'solid'}" style="top:${pct((f.at - ws) / span)}"></i>`).join('');
       const fromEnd = vals.length - 1 - i;
       const label = range === 7 ? WD[d.getDay()] : (fromEnd % labelEvery === 0 ? d.getDate() : '');
-      return `<button class="sc-col${selected === i ? ' sel' : ''}" data-i="${i}"><div class="sc-track">${segs}${nowLine}</div><span class="xl">${label}</span></button>`;
+      return `<button class="sc-col${selected === i ? ' sel' : ''}" data-i="${i}"><div class="sc-track">${segs}${dots}${nowLine}</div><span class="xl">${label}</span></button>`;
     }).join('');
     const grid = ['07:00', '13:00', '19:00', '01:00', '07:00']
       .map((t, i) => `<div class="gl" style="top:${i * 25}%"><b>${t}</b></div>`).join('');
     const gap = range === 7 ? '12px' : range === 14 ? '6px' : '3px', r = range === 30 ? '3px' : range === 14 ? '5px' : '8px';
-    $('chart').innerHTML = `<div class="sc" style="--gap:${gap};--r:${r}"><div class="sc-grid">${grid}</div><div class="sc-cols${selected != null ? ' has-sel' : ''}">${cols}</div></div>`;
+    const fd = range === 30 ? '5px' : range === 14 ? '7px' : '9px', fr = range === 30 ? '1px' : '2px';
+    $('chart').innerHTML = `<div class="sc" style="--gap:${gap};--r:${r};--fd:${fd};--fr:${fr}"><div class="sc-grid">${grid}</div><div class="sc-cols${selected != null ? ' has-sel' : ''}">${cols}</div></div>`;
 
     // header
     if (selected != null && vals[selected]) {
@@ -1059,10 +1109,15 @@
       $('chartEyebrow').textContent = v.k === today ? 'Today so far' : `${WDL[d.getDay()]}, ${d.getDate()} ${MON[d.getMonth()]}`;
       $('chartBig').innerHTML = fmtDur(sum(v), true);
       $('chartDelta').className = 'delta';
-      $('chartDelta').textContent = sum(v) ? `${fmtDur(v.night)} night · ${fmtDur(v.nap)} naps` : 'No sleep logged';
+      $('chartSplit').innerHTML = sum(v) ? splitHtml(v.night, v.nap) : '';
+      const ft = feedsByDay()[v.k];
+      const fbits = ft ? [ft.ml ? `${ft.ml} ml` : ft.drinks ? `${ft.drinks} drink${ft.drinks === 1 ? '' : 's'}` : '', ft.meals ? `${ft.meals} meal${ft.meals === 1 ? '' : 's'}${ft.g ? ` (${ft.g} g)` : ''}` : ''].filter(Boolean) : [];
+      $('chartDelta').textContent = fbits.length ? `Fed ${fbits.join(' · ')}` : sum(v) ? '' : 'No sleep logged';
     } else {
       $('chartEyebrow').textContent = `Daily average · ${range} days`;
       $('chartBig').innerHTML = avg ? fmtDur(avg, true) : '0<span>h</span>';
+      const avgOf = k => pool.length ? pool.reduce((a, v) => a + v[k], 0) / pool.length : 0;
+      $('chartSplit').innerHTML = avg ? splitHtml(avgOf('night'), avgOf('nap')) : '';
       // Compare to the previous period of the same length
       const prevEnd = addDays(keyToDate(days[0]), -1);
       let pSum = 0, pN = 0;
@@ -1083,9 +1138,9 @@
   }
 
   $('chart').addEventListener('click', e => {
-    const t = e.target.closest('[data-i]');
+    const t = e.target.closest('[data-i], [data-f]');
     if (!t) return;
-    const i = +t.dataset.i;
+    const i = t.dataset.f != null ? 'f' + t.dataset.f : +t.dataset.i;
     selected = selected === i ? null : i;
     buzz(6);
     renderChart(Date.now(), totalsByDay(Date.now()));
