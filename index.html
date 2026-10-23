@@ -258,7 +258,7 @@
   .hz-feeds .hz-feed.sel { opacity: 1; }
   .hz-axis { position: relative; height: 24px; margin: 0 2px; }
   .hz-axis b { position: absolute; top: 6px; transform: translateX(-50%); font-size: 11px; font-weight: 700; color: var(--faint); white-space: nowrap; }
-  .legend { display: flex; gap: 16px; margin-top: 14px; font-size: 12px; color: var(--muted); font-weight: 600; flex-wrap: wrap; }
+  .legend { display: flex; align-items: center; gap: 12px; margin-top: 14px; font-size: 12px; color: var(--muted); font-weight: 600; white-space: nowrap; }
   .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 3px; margin-right: 6px; vertical-align: 0; }
   /* Feeds on / off switch in the legend */
   .feed-toggle {
@@ -491,7 +491,7 @@
       <button class="feed-toggle" id="feedToggle" aria-pressed="true">
         <i style="background:var(--milk)"></i><i style="background:var(--solid)"></i>Feeds<span class="sw"></span>
       </button>
-      <span style="margin-left:auto" id="chartNote">Days run 7am → 7am</span>
+      <span style="margin-left:auto" id="chartNote">7am → 7am</span>
     </div>
   </section>
 
@@ -1059,7 +1059,7 @@
     const segSel = typeof selected === 'number';
     $('chart').innerHTML = `<div class="hz"><div class="hz-track${selected != null ? ' has-sel' : ''}">${bands}${blocks}</div>` +
       (showFeeds ? `<div class="hz-feeds${fsel != null ? ' has-sel' : ''}">${dots}</div>` : '') + `<div class="hz-axis">${labels}</div></div>`;
-    $('chartNote').textContent = 'Last 24 hours';
+    $('chartNote').textContent = 'Last 24h';
 
     const el = $('chartDelta');
     el.className = 'delta';
@@ -1085,7 +1085,7 @@
 
   function renderChart(now, totals) {
     if (range === 24) return renderHourly(now);
-    $('chartNote').textContent = 'Each day runs 7am → 7am';
+    $('chartNote').textContent = '7am → 7am';
     const days = chartDays(now);
     const today = days[days.length - 1];
     const vals = days.map(k => ({ k, ...(totals[k] || { night: 0, nap: 0 }) }));
