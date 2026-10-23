@@ -260,6 +260,19 @@
   .hz-axis b { position: absolute; top: 6px; transform: translateX(-50%); font-size: 11px; font-weight: 700; color: var(--faint); white-space: nowrap; }
   .legend { display: flex; gap: 16px; margin-top: 14px; font-size: 12px; color: var(--muted); font-weight: 600; flex-wrap: wrap; }
   .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 3px; margin-right: 6px; vertical-align: 0; }
+  /* Feeds on / off switch in the legend */
+  .feed-toggle {
+    display: inline-flex; align-items: center; margin: -6px 0; padding: 5px 6px 5px 10px; border-radius: 999px;
+    background: var(--card-2); font-size: 12px; font-weight: 700; color: var(--text);
+  }
+  .feed-toggle i { border-radius: 50%; margin-right: 3px; }
+  .feed-toggle i + i { margin-right: 6px; }
+  .feed-toggle .sw { position: relative; width: 26px; height: 16px; margin-left: 8px; border-radius: 999px; background: var(--good); }
+  .feed-toggle .sw::after { content: ""; position: absolute; top: 2px; left: 12px; width: 12px; height: 12px; border-radius: 50%; background: #fff; }
+  .feed-toggle[aria-pressed=false] { color: var(--muted); }
+  .feed-toggle[aria-pressed=false] i { opacity: .35; }
+  .feed-toggle[aria-pressed=false] .sw { background: var(--faint); }
+  .feed-toggle[aria-pressed=false] .sw::after { left: 2px; }
 
   /* ---------- History ---------- */
   .list-head { display: flex; align-items: center; justify-content: space-between; margin: 26px 4px 8px; }
@@ -475,8 +488,9 @@
     <div class="legend">
       <span><i style="background:var(--night)"></i>Night</span>
       <span><i style="background:var(--nap)"></i>Naps</span>
-      <span><i style="background:var(--milk);border-radius:50%"></i>Liquids</span>
-      <span><i style="background:var(--solid);border-radius:50%"></i>Solids</span>
+      <button class="feed-toggle" id="feedToggle" aria-pressed="true">
+        <i style="background:var(--milk)"></i><i style="background:var(--solid)"></i>Feeds<span class="sw"></span>
+      </button>
       <span style="margin-left:auto" id="chartNote">Days run 7am → 7am</span>
     </div>
   </section>
@@ -996,6 +1010,10 @@
 
   // ---------- Chart ----------
   let range = 7, selected = null;
+  // Whether feeds are drawn on the chart: a per-phone preference, so it lives outside the synced log.
+  const FEEDS_KEY = 'sleeptracker.chartFeeds';
+  let showFeeds = true;
+  try { showFeeds = localStorage.getItem(FEEDS_KEY) !== 'off'; } catch (e) {}
   const WD = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
   const WDL = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -1028,7 +1046,7 @@
     const blocks = segs.map((g, i) =>
       `<i class="hz-seg ${g.night ? 'night' : 'nap'}${g.src.live ? ' live' : ''}${selected === i ? ' sel' : ''}" data-i="${i}" style="left:${pct((g.s - w0) / (w1 - w0))};width:${pct((g.e - g.s) / (w1 - w0))}"></i>`).join('');
     // feeds as dots in a row under the line; selected is 'f<index>' when a feed is tapped
-    const feeds = state.feeds.filter(f => f.at >= w0 && f.at <= w1).sort((a, b) => a.at - b.at);
+    const feeds = showFeeds ? state.feeds.filter(f => f.at >= w0 && f.at <= w1).sort((a, b) => a.at - b.at) : [];
     const fsel = typeof selected === 'string' ? +selected.slice(1) : null;
     const dots = feeds.map((f, i) =>
       `<i class="hz-feed ${f.type === 'milk' ? 'milk' : 'solid'}${fsel === i ? ' sel' : ''}" data-f="${i}" style="left:${pct((f.at - w0) / (w1 - w0))}"></i>`).join('');
@@ -1040,7 +1058,7 @@
     }
     const segSel = typeof selected === 'number';
     $('chart').innerHTML = `<div class="hz"><div class="hz-track${selected != null ? ' has-sel' : ''}">${bands}${blocks}</div>` +
-      `<div class="hz-feeds${fsel != null ? ' has-sel' : ''}">${dots}</div><div class="hz-axis">${labels}</div></div>`;
+      (showFeeds ? `<div class="hz-feeds${fsel != null ? ' has-sel' : ''}">${dots}</div>` : '') + `<div class="hz-axis">${labels}</div></div>`;
     $('chartNote').textContent = 'Last 24 hours';
 
     const el = $('chartDelta');
@@ -1091,7 +1109,7 @@
       const segs = (chunks[v.k] || []).map(c =>
         `<i class="sc-seg ${c.night ? 'night' : 'nap'}${c.live ? ' live' : ''}" style="top:${pct((c.s - ws) / span)};height:${pct((c.e - c.s) / span)}"></i>`).join('');
       const nowLine = v.k === today ? `<i class="sc-now" style="top:${pct((now - ws) / span)}"></i>` : '';
-      const dots = (feedsOf[v.k] || []).map(f =>
+      const dots = (showFeeds ? feedsOf[v.k] || [] : []).map(f =>
         `<i class="sc-feed ${f.type === 'milk' ? 'milk' : 'solid'}" style="top:${pct((f.at - ws) / span)}"></i>`).join('');
       const fromEnd = vals.length - 1 - i;
       const label = range === 7 ? WD[d.getDay()] : (fromEnd % labelEvery === 0 ? d.getDate() : '');
@@ -1143,6 +1161,16 @@
     const i = t.dataset.f != null ? 'f' + t.dataset.f : +t.dataset.i;
     selected = selected === i ? null : i;
     buzz(6);
+    renderChart(Date.now(), totalsByDay(Date.now()));
+  });
+  function renderFeedToggle() { $('feedToggle').setAttribute('aria-pressed', String(showFeeds)); }
+  renderFeedToggle();
+  $('feedToggle').addEventListener('click', () => {
+    showFeeds = !showFeeds;
+    try { localStorage.setItem(FEEDS_KEY, showFeeds ? 'on' : 'off'); } catch (e) {}
+    if (typeof selected === 'string') selected = null; // a tapped feed dot is gone
+    buzz(6);
+    renderFeedToggle();
     renderChart(Date.now(), totalsByDay(Date.now()));
   });
   function animateChart() {
