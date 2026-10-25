@@ -1129,7 +1129,11 @@
       $('chartDelta').className = 'delta';
       $('chartSplit').innerHTML = sum(v) ? splitHtml(v.night, v.nap) : '';
       const ft = feedsByDay()[v.k];
-      const fbits = ft ? [ft.ml ? `${ft.ml} ml` : ft.drinks ? `${ft.drinks} drink${ft.drinks === 1 ? '' : 's'}` : '', ft.meals ? `${ft.meals} meal${ft.meals === 1 ? '' : 's'}${ft.g ? ` (${ft.g} g)` : ''}` : ''].filter(Boolean) : [];
+      // each drink type separately (milk, formula, water), then meals
+      const drinkBits = ft ? Object.entries(ft.byDrink)
+        .sort(([a], [b]) => (DRINKS.indexOf(a) + 1 || 99) - (DRINKS.indexOf(b) + 1 || 99))
+        .map(([what, d]) => d.ml ? `${d.ml} ml ${what.toLowerCase()}` : `${d.n}× ${what.toLowerCase()}`) : [];
+      const fbits = ft ? [...drinkBits, ft.meals ? `${ft.meals} meal${ft.meals === 1 ? '' : 's'}${ft.g ? ` (${ft.g} g)` : ''}` : ''].filter(Boolean) : [];
       $('chartDelta').textContent = fbits.length ? `Fed ${fbits.join(' · ')}` : sum(v) ? '' : 'No sleep logged';
     } else {
       $('chartEyebrow').textContent = `Daily average · ${range} days`;
@@ -1223,8 +1227,12 @@
     const map = {};
     for (const f of state.feeds) {
       const k = sleepDayOf(f.at);
-      const m = map[k] || (map[k] = { ml: 0, drinks: 0, meals: 0, g: 0 });
-      if (f.type === 'milk') { m.drinks++; m.ml += f.ml || 0; } else { m.meals++; m.g += f.ml || 0; }
+      const m = map[k] || (map[k] = { ml: 0, drinks: 0, meals: 0, g: 0, byDrink: {} });
+      if (f.type === 'milk') {
+        m.drinks++; m.ml += f.ml || 0;
+        const d = m.byDrink[f.what || 'Milk'] || (m.byDrink[f.what || 'Milk'] = { ml: 0, n: 0 });
+        d.ml += f.ml || 0; d.n++;
+      } else { m.meals++; m.g += f.ml || 0; }
     }
     return map;
   }
