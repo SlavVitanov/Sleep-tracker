@@ -296,13 +296,12 @@
   @media (prefers-color-scheme: dark) { .row .dur.live { color: var(--night-2); } }
   .empty-state { text-align: center; color: var(--muted); font-size: 14px; padding: 34px 20px; background: var(--card); border-radius: var(--radius); margin-top: 12px; box-shadow: var(--shadow); }
   .empty-state .moon { font-size: 34px; margin-bottom: 8px; }
-  .day-more {
-    display: block; width: 100%; padding: 13px 18px 15px; border-top: 1px solid var(--line);
-    font-size: 14px; font-weight: 700; color: var(--night); text-align: center;
+  .more {
+    display: block; width: 100%; margin-top: 12px; padding: 15px; border-radius: var(--radius);
+    background: var(--card); box-shadow: var(--shadow); color: var(--night); font-weight: 800; font-size: 15px;
   }
-  .day-more:active { background: var(--card-2); }
-  @media (prefers-color-scheme: dark) { .day-more { color: var(--night-2); } }
-  .more { display: block; margin: 14px auto 0; color: var(--muted); font-weight: 700; font-size: 14px; padding: 8px 14px; }
+  .more:active { transform: scale(.98); }
+  @media (prefers-color-scheme: dark) { .more { color: var(--night-2); } }
 
   /* ---------- Sheet ---------- */
   .scrim { position: fixed; inset: 0; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity .3s ease; z-index: 20; -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
@@ -1402,10 +1401,9 @@
   }));
 
   // ---------- Timeline ----------
-  let showDays = 7;
-  // Each day shows its newest few entries; 'Show N more' opens the rest of that day.
-  const DAY_PREVIEW = 4;
-  const openDays = new Set();
+  // The timeline starts with the latest few days; 'Show more days' loads more.
+  const DAYS_STEP = 3;
+  let showDays = DAYS_STEP;
   function relDay(k, now) {
     const today = sleepDayOf(now);
     if (k === today) return 'Today';
@@ -1444,8 +1442,7 @@
       if (ft.meals) sum.push(`${ft.meals} meal${ft.meals === 1 ? '' : 's'}`);
       if (ft.g) sum.push(`${ft.g} g`);
       html += `<div class="day" data-k="${k}"><div class="day-h"><span>${relDay(k, now)}</span><span>${sum.join(' · ')}</span></div><div class="tl">`;
-      const open = openDays.has(k), hidden = list.length - DAY_PREVIEW;
-      for (const it of open || hidden <= 0 ? list : list.slice(0, DAY_PREVIEW)) {
+      for (const it of list) {
         const x = it.x;
         if (it.kind === 'sleep') {
           const night = isNight(x.start, x.end);
@@ -1467,24 +1464,14 @@
           </button>`;
         }
       }
-      html += '</div>';
-      if (hidden > 0) html += `<button class="day-more" data-day="${k}">${open ? 'Show less' : `Show ${hidden} more`}</button>`;
-      html += '</div>';
+      html += '</div></div>';
     }
     if (groups.size > showDays) html += `<button class="more" id="moreBtn">Show more days</button>`;
     el.innerHTML = html;
     el.querySelectorAll('[data-sleep]').forEach(r => r.addEventListener('click', () => openEdit(r.dataset.sleep)));
     el.querySelectorAll('[data-feed-id]').forEach(r => r.addEventListener('click', () => openFeed(null, r.dataset.feedId)));
-    el.querySelectorAll('[data-day]').forEach(b => b.addEventListener('click', () => {
-      const k = b.dataset.day, closing = openDays.has(k);
-      closing ? openDays.delete(k) : openDays.add(k);
-      buzz(6);
-      renderAll();
-      // after collapsing a long day, keep its card in view
-      if (closing) el.querySelector(`.day[data-k="${k}"]`).scrollIntoView({ block: 'nearest' });
-    }));
     const more = $('moreBtn');
-    if (more) more.onclick = () => { showDays += 14; renderAll(); };
+    if (more) more.onclick = () => { showDays += DAYS_STEP; buzz(6); renderAll(); };
   }
 
   // ---------- Header ----------
